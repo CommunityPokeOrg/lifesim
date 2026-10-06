@@ -1,0 +1,736 @@
+{
+  "id": "schooling",
+  "name": "Schooling",
+  "events": [
+    {
+      "id": "start_school",
+      "title": "First day of school",
+      "description": "Elementary school awaits. You have strong opinions about this for someone in dinosaur pajamas.",
+      "category": "school",
+      "once": true,
+      "forced": true,
+      "conditions": {
+        "kind": "age",
+        "min": 5,
+        "max": 6
+      },
+      "weight": 100,
+      "choices": [
+        {
+          "id": "go",
+          "text": "Walk in like you own the place",
+          "effects": [
+            {
+              "kind": "flag",
+              "flag": "in_school",
+              "value": true
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 3
+            }
+          ],
+          "result": "You enrolled. Recess ruled immediately."
+        },
+        {
+          "id": "fake_sick",
+          "text": "Fake a catastrophic tummy ache",
+          "outcomes": [
+            {
+              "weight": 30,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 20
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 5
+                },
+                {
+                  "kind": "flag",
+                  "flag": "homeschooled",
+                  "value": true
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                }
+              ],
+              "result": "Sold it. You watched cartoons while the other kids learned shapes."
+            },
+            {
+              "weight": 70,
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "in_school",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -4
+                }
+              ],
+              "result": "The thermometer betrayed you. You were carried in mid-fake-fever."
+            }
+          ]
+        },
+        {
+          "id": "cling",
+          "text": "Latch onto your mom's leg and scream",
+          "outcomes": [
+            {
+              "weight": 15,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 4
+                },
+                {
+                  "kind": "stat",
+                  "stat": "smarts",
+                  "delta": -2
+                },
+                {
+                  "kind": "flag",
+                  "flag": "homeschooled",
+                  "value": true
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                }
+              ],
+              "result": "Your parents caved. Your curriculum is now 'whatever's on TV'."
+            },
+            {
+              "weight": 85,
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "in_school",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -5
+                }
+              ],
+              "result": "They peeled you off like a barnacle. A Mrs. Grubb is now your nemesis."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "school_bully",
+      "title": "School bully",
+      "description": "A bigger kid blocks the water fountain. He knows about the lunch money. He has a plan.",
+      "category": "school",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 6,
+            "max": 17
+          },
+          {
+            "kind": "flag",
+            "flag": "in_school",
+            "equals": true
+          }
+        ]
+      },
+      "weight": 10,
+      "cooldown": 2,
+      "repeatDecay": 0.6,
+      "weightModifiers": [
+        {
+          "when": {
+            "kind": "trait",
+            "trait": "sickly"
+          },
+          "multiply": 1.6
+        },
+        {
+          "when": {
+            "kind": "trait",
+            "trait": "athletic"
+          },
+          "multiply": 0.5
+        }
+      ],
+      "choices": [
+        {
+          "id": "hand_over",
+          "text": "Hand over the money",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": -6
+            }
+          ],
+          "result": "He leaves with your sandwich money and a piece of your dignity."
+        },
+        {
+          "id": "fight_back",
+          "text": "Fight back",
+          "outcomes": [
+            {
+              "weight": 30,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "athletic"
+                  },
+                  "add": 40
+                },
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "health",
+                    "op": "gte",
+                    "value": 70
+                  },
+                  "add": 20
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 8
+                },
+                {
+                  "kind": "flag",
+                  "flag": "stood_up_to_bully",
+                  "value": true
+                }
+              ],
+              "result": "You won. He respects you now, in the way bullies respect people who hit them."
+            },
+            {
+              "weight": 70,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -8
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -5
+                }
+              ],
+              "result": "You got beaten up and spent recess in the nurse's office."
+            }
+          ]
+        },
+        {
+          "id": "tell_teacher",
+          "text": "Tell a teacher",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 2
+            }
+          ],
+          "result": "The teacher intervened. The bully got detention and a respect for authority he'll lose by Friday."
+        }
+      ],
+      "ui": {
+        "x": 260,
+        "y": 0
+      }
+    },
+    {
+      "id": "study_choice",
+      "title": "Study session",
+      "description": "A big test looms tomorrow. Your textbook sits unopened, judging you.",
+      "category": "school",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 8,
+            "max": 21
+          },
+          {
+            "kind": "any",
+            "conditions": [
+              {
+                "kind": "flag",
+                "flag": "in_school",
+                "equals": true
+              },
+              {
+                "kind": "flag",
+                "flag": "in_college",
+                "equals": true
+              }
+            ]
+          }
+        ]
+      },
+      "weight": 10,
+      "cooldown": 2,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "study",
+          "text": "Study hard",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "smarts",
+              "delta": 6
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": -3
+            }
+          ],
+          "result": "You studied until midnight. You now know things. Deeply concerning things about mitochondria."
+        },
+        {
+          "id": "slack",
+          "text": "Play games instead",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 5
+            },
+            {
+              "kind": "stat",
+              "stat": "smarts",
+              "delta": -2
+            }
+          ],
+          "result": "A great evening. Tomorrow-you will hate tonight-you."
+        },
+        {
+          "id": "steal_notes",
+          "text": "Permanently borrow the smart kid's notes",
+          "outcomes": [
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "smarts",
+                  "delta": 5
+                },
+                {
+                  "kind": "flag",
+                  "flag": "cheater",
+                  "value": true
+                }
+              ],
+              "result": "Her handwriting is beautiful. Her trust in humanity: gone."
+            },
+            {
+              "weight": 40,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -6
+                },
+                {
+                  "kind": "flag",
+                  "flag": "detention",
+                  "value": true
+                }
+              ],
+              "result": "Caught. Detention, plus a lecture on integrity you'll pretend to remember."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 520,
+        "y": 0
+      }
+    },
+    {
+      "id": "graduation",
+      "title": "Graduation",
+      "description": "Pomp, circumstance, and an itchy polyester gown. Adulthood awaits, and it charges rent.",
+      "category": "school",
+      "once": true,
+      "forced": true,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 17,
+            "max": 19
+          },
+          {
+            "kind": "flag",
+            "flag": "in_school",
+            "equals": true
+          }
+        ]
+      },
+      "weight": 200,
+      "choices": [
+        {
+          "id": "college",
+          "text": "Apply to college",
+          "conditions": {
+            "kind": "stat",
+            "stat": "smarts",
+            "op": "gte",
+            "value": 45
+          },
+          "effects": [
+            {
+              "kind": "flag",
+              "flag": "in_college",
+              "value": true
+            },
+            {
+              "kind": "unflag",
+              "flag": "in_school"
+            },
+            {
+              "kind": "money",
+              "delta": -20000
+            }
+          ],
+          "result": "You got accepted! Student debt acquired: $20,000. The loans send their regards."
+        },
+        {
+          "id": "work",
+          "text": "Start working",
+          "effects": [
+            {
+              "kind": "unflag",
+              "flag": "in_school"
+            },
+            {
+              "kind": "flag",
+              "flag": "seeking_work",
+              "value": true
+            }
+          ],
+          "result": "No cap and gown debt for you. The workforce gets a fresh recruit."
+        },
+        {
+          "id": "drift",
+          "text": "Take a gap year",
+          "effects": [
+            {
+              "kind": "unflag",
+              "flag": "in_school"
+            },
+            {
+              "kind": "flag",
+              "flag": "seeking_work",
+              "value": true
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 8
+            }
+          ],
+          "result": "You drifted happily. The couch remembers you fondly."
+        }
+      ],
+      "ui": {
+        "x": 780,
+        "y": 0
+      }
+    },
+    {
+      "id": "college_finals",
+      "title": "Final exams",
+      "description": "College finals week. Your degree, your GPA, and your caffeine tolerance hang in the balance.",
+      "category": "school",
+      "once": true,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "flag",
+            "flag": "in_college",
+            "equals": true
+          },
+          {
+            "kind": "age",
+            "min": 21
+          }
+        ]
+      },
+      "weight": 150,
+      "choices": [
+        {
+          "id": "sit_exams",
+          "text": "Sit the exams",
+          "outcomes": [
+            {
+              "weight": 50,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "smarts",
+                    "op": "gte",
+                    "value": 70
+                  },
+                  "add": 40
+                },
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "bookish"
+                  },
+                  "add": 20
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "unflag",
+                  "flag": "in_college"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "degree",
+                  "value": true
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 10
+                }
+              ],
+              "result": "You graduated with honors! The tassel was, in fact, worth the hassle."
+            },
+            {
+              "weight": 50,
+              "effects": [
+                {
+                  "kind": "unflag",
+                  "flag": "in_college"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -10
+                }
+              ],
+              "result": "You failed your finals and dropped out. Your diploma remains a screensaver."
+            }
+          ]
+        },
+        {
+          "id": "cheat",
+          "text": "Smuggle in answers on your forearm",
+          "outcomes": [
+            {
+              "weight": 55,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 10
+                },
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "smarts",
+                    "op": "gte",
+                    "value": 70
+                  },
+                  "add": 15
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "unflag",
+                  "flag": "in_college"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "degree",
+                  "value": true
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                },
+                {
+                  "kind": "flag",
+                  "flag": "cheater",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 8
+                }
+              ],
+              "result": "The degree is yours. Your conscience files a quiet complaint."
+            },
+            {
+              "weight": 45,
+              "effects": [
+                {
+                  "kind": "unflag",
+                  "flag": "in_college"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                },
+                {
+                  "kind": "flag",
+                  "flag": "expelled",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -15
+                }
+              ],
+              "result": "Caught mid-glance. The proctor confiscated your forearm and your future."
+            }
+          ]
+        },
+        {
+          "id": "influencer",
+          "text": "Skip finals to go viral instead",
+          "outcomes": [
+            {
+              "weight": 15,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "lucky"
+                  },
+                  "add": 20
+                },
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 20
+                },
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "looks",
+                    "op": "gte",
+                    "value": 70
+                  },
+                  "add": 15
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "unflag",
+                  "flag": "in_college"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "employed",
+                  "value": true
+                },
+                {
+                  "kind": "flag",
+                  "flag": "salary",
+                  "value": 90000
+                },
+                {
+                  "kind": "flag",
+                  "flag": "influencer",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 20
+                }
+              ],
+              "result": "One unboxing video later, you're internet famous. Degree who?"
+            },
+            {
+              "weight": 85,
+              "effects": [
+                {
+                  "kind": "unflag",
+                  "flag": "in_college"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                },
+                {
+                  "kind": "flag",
+                  "flag": "failed_influencer",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -8
+                }
+              ],
+              "result": "Twelve followers, nine of them bots. Back to the job market."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 1040,
+        "y": 0
+      }
+    }
+  ]
+}

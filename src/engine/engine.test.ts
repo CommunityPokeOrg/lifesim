@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { LifeSim } from "./engine";
 import { validatePack } from "./schema";
-import corePack from "../packs/core.json";
+import { bundledCorePack } from "../packs/index";
 import type { EventPack } from "./types";
 
-const pack = corePack as EventPack;
+const pack = bundledCorePack();
 
 function life(seed = 42, packs: EventPack[] = [pack]) {
   return new LifeSim(packs, { seed, name: "Test" });
@@ -194,7 +194,7 @@ describe("LifeSim", () => {
 
 describe("validatePack", () => {
   it("accepts the bundled core pack", () => {
-    const res = validatePack(corePack);
+    const res = validatePack(pack);
     expect(res.ok, res.ok ? "" : res.errors.join("\n")).toBe(true);
   });
 

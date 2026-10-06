@@ -37,10 +37,13 @@ export function contractAilment(c: Character, def: DiseaseDef, rng: Rng): Active
   return a;
 }
 
+// `ailmentId` may be an active-ailment instance id or a def id — pack
+// effects can't know instance ids, so both match.
 export function cureAilment(c: Character, ailmentId?: string): ActiveAilment[] {
   const before = c.ailments;
-  const removed = ailmentId ? before.filter((a) => a.id === ailmentId) : before;
-  c.ailments = ailmentId ? before.filter((a) => a.id !== ailmentId) : [];
+  const match = (a: ActiveAilment) => a.id === ailmentId || a.defId === ailmentId;
+  const removed = ailmentId ? before.filter(match) : before;
+  c.ailments = ailmentId ? before.filter((a) => !match(a)) : [];
   return removed;
 }
 
@@ -55,8 +58,15 @@ export function ailmentTick(
   rng: Rng,
 ): { notes: string[]; died?: string } {
   const notes: string[] = [];
+  // The combined yearly health drain of every active ailment is capped, so
+  // stacking conditions hurts but can't snowball into early-life death
+  // spirals; each ailment still drains happiness on its own.
+  const totalDrain = Math.max(
+    -3,
+    c.ailments.reduce((s, a) => s + a.drain, 0),
+  );
+  c.stats.health = clamp(c.stats.health + totalDrain);
   for (const a of [...c.ailments]) {
-    c.stats.health = clamp(c.stats.health + a.drain);
     c.stats.happiness = clamp(c.stats.happiness + a.happy);
     const def = defs.get(a.defId);
     if (a.course === "progressive" && def?.escalatePerYear) {

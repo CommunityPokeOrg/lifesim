@@ -1,19 +1,24 @@
 import { useMemo, useRef, useState } from "react";
 import { LifeSim } from "../engine/engine";
-import { validatePack } from "../engine/schema";
-import { STAT_KEYS, type EventPack } from "../engine/types";
+import { validatePackFile } from "../engine/schema";
+import { sectionKey } from "../engine/packs";
+import { STAT_KEYS, type EventPack, type LoadedPack } from "../engine/types";
 import ActionsPanel from "./ActionsPanel";
 import StatBar from "./StatBar";
+import PeoplePanel from "./PeoplePanel";
+import AilmentList from "./AilmentList";
 
 interface Props {
   packs: EventPack[];
-  bundledPacks: EventPack[];
+  bundledPacks: LoadedPack[];
   enabledPackIds: string[];
   onTogglePack: (id: string) => void;
-  onImportPack: (pack: EventPack) => void;
+  disabledSections: ReadonlySet<string>;
+  onToggleSection: (key: string) => void;
+  onImportPack: (pack: LoadedPack) => void;
 }
 
-export default function GameScreen({ packs, bundledPacks, enabledPackIds, onTogglePack, onImportPack }: Props) {
+export default function GameScreen({ packs, bundledPacks, enabledPackIds, onTogglePack, disabledSections, onToggleSection, onImportPack }: Props) {
   const [sim, setSim] = useState<LifeSim | null>(null);
   const [name, setName] = useState("Alex");
   const [seedText, setSeedText] = useState("");
@@ -43,12 +48,12 @@ export default function GameScreen({ packs, bundledPacks, enabledPackIds, onTogg
   const importPackFile = async (file: File) => {
     try {
       const data = JSON.parse(await file.text());
-      const res = validatePack(data);
+      const res = validatePackFile(data);
       if (!res.ok) {
         setImportError(res.errors.join("\n"));
         return;
       }
-      onImportPack(res.pack);
+      onImportPack(res.loaded);
       setImportError("");
     } catch (e) {
       setImportError(`Not valid JSON: ${(e as Error).message}`);
@@ -96,6 +101,9 @@ export default function GameScreen({ packs, bundledPacks, enabledPackIds, onTogg
                   <span key={k} className="trait-chip">{k.replaceAll("_", " ")}</span>
                 ))}
             </div>
+            <AilmentList sim={sim!} onAct={rerender} />
+            <div className="section-label">People</div>
+            <PeoplePanel sim={sim!} onAct={rerender} />
           </>
         ) : (
           <p style={{ color: "var(--muted)" }}>No life yet. Start one below.</p>
@@ -143,7 +151,12 @@ export default function GameScreen({ packs, bundledPacks, enabledPackIds, onTogg
         )}
         {pending && (
           <div className="event-card">
-            <div className="event-cat">{pending.event.category ?? "life"}</div>
+            <div className="event-cat">
+              {pending.event.category ?? "life"}
+              {pending.subject && (
+                <span className="event-subject"> · {pending.subject.name}</span>
+              )}
+            </div>
             <div className="event-title">{pending.event.title}</div>
             <div className="event-desc">{pending.event.description}</div>
             {pending.choices.map((ch) => (
@@ -173,23 +186,45 @@ export default function GameScreen({ packs, bundledPacks, enabledPackIds, onTogg
 
       <div className="panel">
         <h3>Loaded packs</h3>
-        {bundledPacks.map((p) => (
-          <div key={p.id} className="cond-row">
-            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-              <input
-                type="checkbox"
-                checked={enabledPackIds.includes(p.id)}
-                onChange={() => onTogglePack(p.id)}
-              />
-              <b>{p.name}</b> <span style={{ color: "var(--muted)" }}>v{p.version}</span>
-            </label>
-            <div style={{ color: "var(--muted)", fontSize: 12 }}>
-              {p.events.length} events
+        {bundledPacks.map((lp) => {
+          const p = lp.pack;
+          const enabled = enabledPackIds.includes(p.id);
+          return (
+            <div key={p.id} className="cond-row">
+              <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={enabled}
+                  onChange={() => onTogglePack(p.id)}
+                />
+                <b>{p.name}</b> <span style={{ color: "var(--muted)" }}>v{p.version}</span>
+              </label>
+              <div style={{ color: "var(--muted)", fontSize: 12 }}>
+                {p.events.length} events
+                {p.ailments?.length ? `, ${p.ailments.length} conditions` : ""}
+              </div>
+              {lp.sections.map((s) => {
+                const key = sectionKey(p.id, s.id);
+                return (
+                  <label key={s.id} className="pack-section">
+                    <input
+                      type="checkbox"
+                      checked={enabled && !disabledSections.has(key)}
+                      disabled={!enabled}
+                      onChange={() => onToggleSection(key)}
+                    />
+                    <span>{s.name}</span>
+                    <span style={{ color: "var(--muted)", fontSize: 11 }}>
+                      {s.eventIds.length} ev{s.ailmentIds.length ? ` · ${s.ailmentIds.length} cond` : ""}
+                    </span>
+                  </label>
+                );
+              })}
             </div>
-          </div>
-        ))}
+          );
+        })}
         {packs
-          .filter((p) => !bundledPacks.some((b) => b.id === p.id))
+          .filter((p) => !bundledPacks.some((b) => b.pack.id === p.id))
           .map((p) => (
             <div key={p.id} className="cond-row">
               <b>{p.name}</b> <span style={{ color: "var(--muted)" }}>v{p.version}</span>

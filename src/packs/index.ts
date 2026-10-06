@@ -25,6 +25,13 @@ const rawNested = import.meta.glob("./*/*.json", {
   import: "default",
 }) as Record<string, unknown>;
 
+/** The flattened core pack — convenience for tests and dev scripts. */
+export function bundledCorePack() {
+  const core = loadBundledPacks().find((p) => p.pack.id === "core");
+  if (!core) throw new Error("bundled core pack not found");
+  return core.pack;
+}
+
 export function loadBundledPacks(): LoadedPack[] {
   const packs: LoadedPack[] = [];
 

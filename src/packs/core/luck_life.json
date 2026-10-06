@@ -1,0 +1,268 @@
+{
+  "id": "luck_life",
+  "name": "Luck & Life",
+  "events": [
+    {
+      "id": "lottery",
+      "title": "Lucky ticket",
+      "description": "A scratch-off ticket winks at you from behind the counter. Its name is 'Moolah Madness.'",
+      "category": "luck",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 18
+          },
+          {
+            "kind": "money",
+            "op": "gte",
+            "value": 10
+          }
+        ]
+      },
+      "weight": 6,
+      "cooldown": 3,
+      "repeatDecay": 0.6,
+      "weightModifiers": [
+        {
+          "when": {
+            "kind": "trait",
+            "trait": "lucky"
+          },
+          "multiply": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "buy",
+          "text": "Buy it ($10)",
+          "outcomes": [
+            {
+              "weight": 2,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "lucky"
+                  },
+                  "add": 8
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": 50000
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 25
+                }
+              ],
+              "result": "JACKPOT! $50,000 richer."
+            },
+            {
+              "weight": 98,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -10
+                }
+              ],
+              "result": "Nothing. The ticket goes in the bin."
+            }
+          ]
+        },
+        {
+          "id": "pass",
+          "text": "Walk past",
+          "result": "You saved your money. The lottery is, statistically, a tax on hope."
+        },
+        {
+          "id": "buy_roll",
+          "text": "Buy the whole roll ($300)",
+          "conditions": {
+            "kind": "money",
+            "op": "gte",
+            "value": 300
+          },
+          "outcomes": [
+            {
+              "weight": 6,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "lucky"
+                  },
+                  "add": 14
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": 50000
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 25
+                }
+              ],
+              "result": "Ticket 47 of 100 hits for $50,000. Statistical? No. Glorious? Yes."
+            },
+            {
+              "weight": 94,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -300
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -6
+                },
+                {
+                  "kind": "flag",
+                  "flag": "scratch_addict",
+                  "value": true
+                }
+              ],
+              "result": "One hundred tickets, $12 back, and a silver-dust-covered thumbs-down from the cashier."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 1040,
+        "y": 220
+      }
+    },
+    {
+      "id": "midlife_crisis",
+      "title": "Midlife crisis",
+      "description": "You catch yourself pricing sports cars at 2am. Your knees make a sound when you stand now.",
+      "category": "life",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 40,
+            "max": 55
+          },
+          {
+            "kind": "stat",
+            "stat": "happiness",
+            "op": "lt",
+            "value": 50
+          }
+        ]
+      },
+      "weight": 10,
+      "cooldown": 4,
+      "repeatDecay": 0.5,
+      "choices": [
+        {
+          "id": "sports_car",
+          "text": "Buy the car ($40,000)",
+          "conditions": {
+            "kind": "money",
+            "op": "gte",
+            "value": 40000
+          },
+          "effects": [
+            {
+              "kind": "money",
+              "delta": -40000
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 20
+            }
+          ],
+          "result": "Cherry red. Zero regrets. The neighbors can hear your midlife crisis from three blocks away."
+        },
+        {
+          "id": "meditate",
+          "text": "Take up meditation",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 8
+            },
+            {
+              "kind": "stat",
+              "stat": "health",
+              "delta": 3
+            }
+          ],
+          "result": "Inner peace is cheaper than a convertible. Marginally less fun."
+        },
+        {
+          "id": "join_band",
+          "text": "Dye your hair and join a band",
+          "outcomes": [
+            {
+              "weight": 40,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 15
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -500
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 15
+                },
+                {
+                  "kind": "flag",
+                  "flag": "rockstar_phase",
+                  "value": true
+                }
+              ],
+              "result": "Your band, 'Midlife Carcass,' plays to nine people. You feel 22 again."
+            },
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -500
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -6
+                },
+                {
+                  "kind": "flag",
+                  "flag": "band_drama",
+                  "value": true
+                }
+              ],
+              "result": "The bassist slept with the drummer's partner. You quit before the first gig."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 780,
+        "y": 440
+      }
+    }
+  ]
+}

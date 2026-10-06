@@ -11,12 +11,7 @@ import ReactFlow, {
   type Node,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import type {
-  DiseaseDef,
-  EventPack,
-  PackSectionInfo,
-  SimEvent,
-} from "../engine/types";
+import type { DiseaseDef, EventPack, PackSectionInfo, SimEvent } from "../engine/types";
 import { validatePack, validatePackFile } from "../engine/schema";
 import EventNode from "./EventNode";
 import EventInspector from "./EventInspector";
@@ -147,6 +142,17 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
         ])),
       );
       setNewSection(res.loaded.sections[0]?.id ?? "");
+      const ailBySection = new Map<string, DiseaseDef[]>();
+      const allAilments = res.loaded.pack.ailments ?? [];
+      for (const s of res.loaded.sections) {
+        ailBySection.set(
+          s.id,
+          allAilments.filter((a) => s.ailmentIds.includes(a.id)),
+        );
+      }
+      const inSection = new Set(res.loaded.sections.flatMap((s) => s.ailmentIds));
+      ailBySection.set("", allAilments.filter((a) => !inSection.has(a.id)));
+      setSectionAilments(ailBySection);
       const ns = packToNodes(res.loaded.pack, res.loaded.sections);
       setNodes(ns);
       setEdges(packToEdges(ns));

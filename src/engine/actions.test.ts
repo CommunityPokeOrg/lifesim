@@ -13,10 +13,10 @@ import {
 import { LifeSim } from "./engine";
 import { validatePack } from "./schema";
 import actionsPack from "../packs/actions.json";
-import corePack from "../packs/core.json";
+import { bundledCorePack } from "../packs/index";
 import type { EventPack } from "./types";
 
-const packs = [corePack as EventPack, actionsPack as EventPack];
+const packs = [bundledCorePack(), actionsPack as EventPack];
 
 function life(seed = 42) {
   return new LifeSim(packs, { seed, name: "Test" });
@@ -104,12 +104,18 @@ describe("jobs", () => {
   it("gates high-end jobs on education and stats", () => {
     const sim = life();
     ageTo(sim, 30);
-    const doctor = jobStatus(sim, sim.jobs.get("doctor")!);
-    expect(doctor.eligible).toBe(false);
-    // Degree + high smarts opens the door.
-    sim.character.flags.degree = true;
+    const doctor = () => jobStatus(sim, sim.jobs.get("doctor")!);
+    // No degree: locked regardless of smarts.
+    delete sim.character.flags.degree;
     sim.character.stats.smarts = 85;
-    expect(jobStatus(sim, sim.jobs.get("doctor")!).eligible).toBe(true);
+    expect(doctor().eligible).toBe(false);
+    // Degree but low smarts: still locked.
+    sim.character.flags.degree = true;
+    sim.character.stats.smarts = 50;
+    expect(doctor().eligible).toBe(false);
+    // Degree + high smarts opens the door.
+    sim.character.stats.smarts = 85;
+    expect(doctor().eligible).toBe(true);
   });
 
   it("gates delivery driver on owning a car (shop-job interaction)", () => {

@@ -1,0 +1,762 @@
+{
+  "id": "jobs",
+  "name": "Jobs",
+  "events": [
+    {
+      "id": "job_hunt",
+      "title": "Job interview",
+      "description": "A local business is hiring. You've rehearsed 'I'm a people person' in the mirror all week.",
+      "category": "jobs",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 16
+          },
+          {
+            "kind": "flag",
+            "flag": "seeking_work",
+            "equals": true
+          },
+          {
+            "kind": "not",
+            "condition": {
+              "kind": "flag",
+              "flag": "in_prison",
+              "equals": true
+            }
+          }
+        ]
+      },
+      "weight": 45,
+      "cooldown": 4,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "interview",
+          "text": "Do the interview",
+          "outcomes": [
+            {
+              "weight": 40,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "flag",
+                    "flag": "degree",
+                    "equals": true
+                  },
+                  "add": 40
+                },
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "smarts",
+                    "op": "gte",
+                    "value": 60
+                  },
+                  "add": 20
+                },
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 15
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "employed",
+                  "value": true
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "seeking_work"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "salary",
+                  "value": 32000
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 12
+                },
+                {
+                  "kind": "person",
+                  "role": "coworker",
+                  "rel": 15
+                }
+              ],
+              "result": "You got the job! Salary: $32,000/year. Congrats on the stapler privileges."
+            },
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -6
+                }
+              ],
+              "result": "They went with someone 'more qualified.' Kevin. It was Kevin."
+            }
+          ]
+        },
+        {
+          "id": "bribe",
+          "text": "Bribe the receptionist for the questions ($500)",
+          "conditions": {
+            "kind": "money",
+            "op": "gte",
+            "value": 500
+          },
+          "outcomes": [
+            {
+              "weight": 75,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -500
+                },
+                {
+                  "kind": "flag",
+                  "flag": "employed",
+                  "value": true
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "seeking_work"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "salary",
+                  "value": 32000
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 10
+                },
+                {
+                  "kind": "person",
+                  "role": "coworker",
+                  "rel": 15
+                }
+              ],
+              "result": "You nailed every answer. Suspiciously nailed them."
+            },
+            {
+              "weight": 25,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -500
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -10
+                },
+                {
+                  "kind": "flag",
+                  "flag": "blacklisted",
+                  "value": true
+                }
+              ],
+              "result": "She pocketed the cash AND told the manager. Bold move, wrong audience."
+            }
+          ]
+        },
+        {
+          "id": "lie",
+          "text": "Lie shamelessly on your resume",
+          "outcomes": [
+            {
+              "weight": 45,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 15
+                },
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "smarts",
+                    "op": "gte",
+                    "value": 65
+                  },
+                  "add": 15
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "employed",
+                  "value": true
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "seeking_work"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "salary",
+                  "value": 40000
+                },
+                {
+                  "kind": "flag",
+                  "flag": "resume_liar",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 12
+                },
+                {
+                  "kind": "person",
+                  "role": "coworker",
+                  "rel": 15
+                }
+              ],
+              "result": "Congratulations, 'Regional Synergy Director.' Pray nobody asks what that means."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -10
+                },
+                {
+                  "kind": "flag",
+                  "flag": "resume_fraud",
+                  "value": true
+                }
+              ],
+              "result": "The background check took four minutes. You are now a cautionary tale in HR training."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 0,
+        "y": 220
+      }
+    },
+    {
+      "id": "promotion",
+      "title": "Promotion opportunity",
+      "description": "Your boss says a promotion 'might be in the cards' \u2014 corporate for 'dance, monkey, dance.'",
+      "category": "jobs",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "flag",
+            "flag": "employed",
+            "equals": true
+          },
+          {
+            "kind": "not",
+            "condition": {
+              "kind": "flag",
+              "flag": "in_prison",
+              "equals": true
+            }
+          }
+        ]
+      },
+      "weight": 8,
+      "cooldown": 4,
+      "repeatDecay": 0.5,
+      "weightModifiers": [
+        {
+          "when": {
+            "kind": "stat",
+            "stat": "smarts",
+            "op": "gte",
+            "value": 70
+          },
+          "multiply": 1.8
+        }
+      ],
+      "choices": [
+        {
+          "id": "push",
+          "text": "Work overtime to earn it",
+          "outcomes": [
+            {
+              "weight": 45,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "smarts",
+                    "op": "gte",
+                    "value": 65
+                  },
+                  "add": 30
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "salary",
+                  "value": 55000
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 10
+                }
+              ],
+              "result": "Promoted! New salary: $55,000/year."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -4
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -4
+                }
+              ],
+              "result": "The overtime burned you out and the promotion went elsewhere."
+            }
+          ]
+        },
+        {
+          "id": "coast",
+          "text": "Keep coasting",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 2
+            }
+          ],
+          "result": "You kept your head down and your evenings free. Lazy? No. Strategic."
+        },
+        {
+          "id": "credit_thief",
+          "text": "Take credit for the team's work",
+          "outcomes": [
+            {
+              "weight": 45,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 15
+                },
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "smarts",
+                    "op": "gte",
+                    "value": 60
+                  },
+                  "add": 15
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "salary",
+                  "value": 55000
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 10
+                },
+                {
+                  "kind": "flag",
+                  "flag": "credit_thief",
+                  "value": true
+                }
+              ],
+              "result": "Promoted! Your teammates' glares were worth it. Probably."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -8
+                },
+                {
+                  "kind": "flag",
+                  "flag": "known_fraud",
+                  "value": true
+                }
+              ],
+              "result": "Your cubicle neighbor produced receipts. The promotion went to literally anyone else."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 260,
+        "y": 220
+      }
+    },
+    {
+      "id": "fired",
+      "title": "Trouble at work",
+      "description": "You broke something expensive. HR sent a calendar invite titled 'Quick Chat' \u2014 the most ominous words in corporate history.",
+      "category": "jobs",
+      "conditions": {
+        "kind": "flag",
+        "flag": "employed",
+        "equals": true
+      },
+      "weight": 6,
+      "cooldown": 5,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "apologize",
+          "text": "Apologize profusely",
+          "outcomes": [
+            {
+              "weight": 65,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 25
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -3
+                }
+              ],
+              "result": "You survived with a formal warning and a laminated card reading 'WE'RE A FAMILY.'"
+            },
+            {
+              "weight": 35,
+              "effects": [
+                {
+                  "kind": "unflag",
+                  "flag": "employed"
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "salary"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -12
+                }
+              ],
+              "result": "HR read your apology back as evidence. You were fired on the spot."
+            }
+          ]
+        },
+        {
+          "id": "blame_dave",
+          "text": "Blame your coworker Dave",
+          "outcomes": [
+            {
+              "weight": 40,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "smarts",
+                    "op": "gte",
+                    "value": 60
+                  },
+                  "add": 20
+                },
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 10
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 3
+                },
+                {
+                  "kind": "flag",
+                  "flag": "threw_dave_under_bus",
+                  "value": true
+                }
+              ],
+              "result": "Dave is packing his desk. He waves at you. It is not friendly."
+            },
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "unflag",
+                  "flag": "employed"
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "salary"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -14
+                },
+                {
+                  "kind": "flag",
+                  "flag": "known_weasel",
+                  "value": true
+                }
+              ],
+              "result": "Nobody bought it. You're fired, and Dave got your parking spot."
+            }
+          ]
+        },
+        {
+          "id": "lawyer_up",
+          "text": "Lawyer up ($2,000 retainer)",
+          "conditions": {
+            "kind": "money",
+            "op": "gte",
+            "value": 2000
+          },
+          "outcomes": [
+            {
+              "weight": 55,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "smarts",
+                    "op": "gte",
+                    "value": 65
+                  },
+                  "add": 15
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": 6000
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "employed"
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "salary"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 8
+                }
+              ],
+              "result": "Wrongful-termination settlement. Your lawyer high-fived you in the parking lot."
+            },
+            {
+              "weight": 45,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -2000
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "employed"
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "salary"
+                },
+                {
+                  "kind": "flag",
+                  "flag": "seeking_work",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -12
+                }
+              ],
+              "result": "Your case was dismissed in six minutes. The retainer is non-refundable."
+            }
+          ]
+        },
+        {
+          "id": "dramatic_quit",
+          "text": "Quit first, dramatically",
+          "effects": [
+            {
+              "kind": "unflag",
+              "flag": "employed"
+            },
+            {
+              "kind": "unflag",
+              "flag": "salary"
+            },
+            {
+              "kind": "flag",
+              "flag": "seeking_work",
+              "value": true
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 6
+            }
+          ],
+          "result": "You flipped a desk plant and declared 'you can't fire me, I quit.' Janet from accounting slow-clapped."
+        }
+      ],
+      "ui": {
+        "x": 520,
+        "y": 220
+      }
+    },
+    {
+      "id": "coworker_lunch",
+      "title": "Lunch invite",
+      "description": "{{subject.name}} from work invites you to lunch. Networking or gossip? Both.",
+      "category": "jobs",
+      "weight": 7,
+      "cooldown": 2,
+      "repeatDecay": 0.9,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "flag",
+            "flag": "employed",
+            "equals": true
+          },
+          {
+            "kind": "person",
+            "relation": [
+              "coworker"
+            ]
+          }
+        ]
+      },
+      "subject": {
+        "relation": [
+          "coworker"
+        ]
+      },
+      "choices": [
+        {
+          "id": "go",
+          "text": "Go to lunch ($20)",
+          "effects": [
+            {
+              "kind": "money",
+              "delta": -20
+            },
+            {
+              "kind": "rel",
+              "delta": 8
+            }
+          ],
+          "result": "You learn everyone's salaries. Fascinating."
+        },
+        {
+          "id": "decline",
+          "text": "Eat at your desk",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": -5
+            }
+          ],
+          "result": "Sad desk salad. {{subject.name}} thinks you're weird."
+        },
+        {
+          "id": "expense",
+          "text": "Expense it as 'client development'",
+          "outcomes": [
+            {
+              "weight": 70,
+              "effects": [
+                {
+                  "kind": "rel",
+                  "delta": 8
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 4
+                }
+              ],
+              "result": "Accounting doesn't blink. Free lunch."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                {
+                  "kind": "rel",
+                  "delta": -8
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -5
+                }
+              ],
+              "result": "Accounting blinks twice and flags your file."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 780,
+        "y": 520
+      }
+    }
+  ]
+}

@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { LifeSim } from "./engine";
 import { validatePack } from "./schema";
 import { simulate } from "./simulate";
-import corePack from "../packs/core.json";
 import chaosPack from "../packs/chaos.json";
+import { bundledCorePack } from "../packs/index";
 import type { EventPack } from "./types";
 
-const core = corePack as EventPack;
+const core = bundledCorePack();
 const chaos = chaosPack as EventPack;
 const both: EventPack[] = [core, chaos];
 

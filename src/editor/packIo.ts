@@ -72,12 +72,15 @@ export function nodesToPack(
   nodes: Node<EventNodeData>[],
   meta: Omit<EventPack, "events">,
   sectionNames?: Map<string, string>,
+  /** Section id → disease defs imported with the pack.
+   *  The graph only carries events, so ailments pass through untouched. */
   sectionAilments?: Map<string, DiseaseDef[]>,
 ): PackFile {
   const eventOf = (n: Node<EventNodeData>) => ({
     ...n.data.event,
     ui: { x: Math.round(n.position.x), y: Math.round(n.position.y) },
   });
+
   const sectionOrder: string[] = [];
   const bySection = new Map<string, SimEvent[]>();
   const loose: SimEvent[] = [];
@@ -95,7 +98,7 @@ export function nodesToPack(
   }
   // Sections that carry only ailments (no events) still round-trip.
   for (const sid of sectionAilments?.keys() ?? []) {
-    if (!bySection.has(sid)) sectionOrder.push(sid);
+    if (sid && !bySection.has(sid)) sectionOrder.push(sid);
   }
   const inSections = new Set(
     [...(sectionAilments?.values() ?? [])].flat().map((d) => d.id),

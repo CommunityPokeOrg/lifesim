@@ -75,6 +75,7 @@ const effect = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("ailment"), ailment: id }),
   z.object({ kind: z.literal("cure"), ailment: id.optional() }),
   z.object({ kind: z.literal("rel"), delta: z.number().min(-100).max(100) }),
+  z.object({ kind: z.literal("relation"), relation: relationKind }),
   z.object({
     kind: z.literal("person"),
     role: relationKind,

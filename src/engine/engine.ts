@@ -163,6 +163,14 @@ export class LifeSim {
       this.die(sick.died);
       return notes;
     }
+
+    // Mild recovery — a body carrying little or no condition load repairs
+    // a little each year; anything draining harder than a mild ache blocks it.
+    const drainSum = c.ailments.reduce((s, a) => s + a.drain, 0);
+    if (c.stats.health < 70 && drainSum > -2) {
+      c.stats.health = clamp(c.stats.health + 3);
+    }
+
     // Age-related health drift.
     if (c.age > 85) c.stats.health = clamp(c.stats.health - 6);
     else if (c.age > 70) c.stats.health = clamp(c.stats.health - 4);
@@ -421,6 +429,9 @@ export class LifeSim {
           if (subject?.alive) {
             subject.rel = Math.max(-100, Math.min(100, subject.rel + e.delta));
           }
+          break;
+        case "relation":
+          if (subject?.alive) subject.relation = e.relation;
           break;
         case "person": {
           const p = genPerson(this.rng, this.namePools, e.role, c.age, {

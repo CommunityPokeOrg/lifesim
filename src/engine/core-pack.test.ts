@@ -1,32 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { validatePack } from "./schema";
-import type { EventPack } from "./types";
+import { loadBundledPacks } from "../packs/index";
 
 /**
- * Content-quality rules for bundled packs, kept out of validatePack so
- * user-uploaded mods aren't forced to meet the same bar.
+ * Content-quality rules for bundled packs, kept out of validatePackFile so
+ * user-uploaded mods aren't forced to meet the same bar. Packs are loaded
+ * through the real bundled-pack loader, so nested section files are
+ * resolved and validated exactly as at runtime (and an invalid bundled
+ * pack throws inside loadBundledPacks, failing here).
  */
-const packModules = import.meta.glob("../packs/*.json", { eager: true });
-const packs = Object.entries(packModules).map(([path, mod]) => ({
-  path,
-  data: (mod as { default: unknown }).default,
-}));
+const packs = loadBundledPacks();
 
 describe("bundled event packs", () => {
-  it("all bundled packs pass schema validation", () => {
-    for (const { path, data } of packs) {
-      const result = validatePack(data);
-      expect(result.ok ? [] : result.errors, path).toEqual([]);
-    }
+  it("all bundled packs load and pass schema validation", () => {
+    expect(packs.length).toBeGreaterThan(0);
   });
 
   it("every choice event offers at least 2 options", () => {
-    for (const { path, data } of packs) {
-      const pack = data as EventPack;
+    for (const { pack } of packs) {
       const offenders = pack.events.filter((e) => e.choices.length < 2);
       expect(
         offenders.map((e) => e.id),
-        `${path}: a single button isn't a choice`,
+        `${pack.id}: a single button isn't a choice`,
       ).toEqual([]);
     }
   });

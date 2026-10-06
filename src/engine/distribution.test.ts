@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { LifeSim } from "./engine";
 import { simulate } from "./simulate";
-import corePack from "../packs/core.json";
+import { bundledCorePack } from "../packs/index";
 import type { EventPack } from "./types";
 
-const pack = corePack as EventPack;
+const pack = bundledCorePack();
 
 /** Fixed-seed batch run: deterministic across runs and machines. */
 const LIVES = 600;

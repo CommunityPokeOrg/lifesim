@@ -35,15 +35,41 @@ npm run preview    # serve the production build
     draws each year.
   - **Probability modifiers** — `weightModifiers` multiply or add to weights
     when a condition holds (e.g. the `athletic` trait tilts fight outcomes).
-  - **Effects** — stat deltas, money, trait add/remove, flag set/unset, death.
+  - **Effects** — stat deltas, money, trait add/remove, flag set/unset, death,
+    plus people/disease effects (`person`, `rel`, `relation`, `memory`,
+    `ailment`, `cure`) described below.
   - **`goto` chains** — an outcome can hand off to another event immediately.
+- **Persistent NPCs** (`src/engine/people.ts`) — the character is born into a
+  generated family (mother, father, siblings, grandparent) and events can
+  introduce more NPCs (`{ "kind": "person", "role": "partner" }` spawns one).
+  Every person has a name, age, traits, a relationship meter (-100…100),
+  and a memory log. NPCs age each year, drift in affection, can move away or
+  die (elders especially), and the **People** panel in the game UI offers
+  per-person actions: spend time, compliment, gift, argue, ask out, propose,
+  break up, ask for money.
+- **Diseases & conditions** (`src/engine/ailments.ts`) — packs define
+  `ailments` (id, kind: physical/mental/injury, course: acute/chronic/
+  progressive, severity, yearly stat drains, optional `lethalPerYear`,
+  `onsetWeight`, and `treatments` with cost + cure chance). Acute ailments
+  expire; chronic ones persist until treated; progressive ones worsen each
+  year. The **Conditions** section of the character panel lists active
+  ailments with treatments — buying treatment is how a sick life survives.
+  Events contract or cure ailments via `{ "kind": "ailment" }` /
+  `{ "kind": "cure" }` effects.
+- **NPC-bound events** — an event with `"subject": { "relation": ["spouse"] }`
+  only fires when a matching living NPC exists; that NPC becomes the event's
+  subject, `{{subject.name}}` / `{{subject.age}}` interpolate into text, and
+  `rel`/`relation`/`memory` effects apply to them.
 - **Visual mod editor** (`src/editor/`) — a React Flow node graph where each
   node is an event and each edge is a `goto` link from a specific choice.
   Click a node to edit title, conditions, choices, branches, effects, and
   weights in the inspector. Import/export packs as JSON and *Playtest* them
   instantly in the simulator.
-- **Starter pack** (`src/packs/core.json`) — 17 events across school, jobs,
-  relationships, crime, health, and luck.
+- **Starter pack** (`src/packs/core/`) — a *nested pack*: `pack.json` is the
+  manifest and each subsection file (`schooling.json`, `jobs.json`,
+  `relationships.json`, `crime.json`, `health.json`, `luck_life.json`) carries
+  its own events and disease defs. Every subsection gets its own checkbox in
+  the game's "Loaded packs" panel.
 - **Sandboxed packs** — packs are data-only. `validatePack` (zod schema +
   semantic checks: unique ids, dangling `goto`s, choices without outcomes) is
   run on every import, and the engine only interprets validated data — no
@@ -107,6 +133,59 @@ npm run preview    # serve the production build
 See `src/engine/types.ts` for the full type definitions and
 `src/engine/schema.ts` for the validation rules.
 
+### Nested packs (subpacks)
+
+A pack file may also declare `sections`, either inline or as sibling files:
+
+```jsonc
+// src/packs/core/pack.json
+{
+  "id": "core",
+  "name": "Core Life Events",
+  "version": "2.0.0",
+  "sections": [
+    { "id": "health", "name": "Health & Disease", "src": "health.json" },
+    { "id": "crime", "name": "Crime", "events": [ /* inline works too */ ] }
+  ],
+  "names": { "first": ["Sam", "Riley"], "last": ["Chen", "Garcia"] } // optional NPC name pools
+}
+```
+
+`src` sections resolve relative to the manifest's directory (bundled packs
+only — imported packs must inline their sections). Each section can carry
+`events` and `ailments` of its own, and the game UI can toggle sections
+independently. Flat v1 packs (top-level `events` only) keep working
+unchanged.
+
+### Ailment format
+
+```jsonc
+{
+  "id": "influenza",
+  "name": "Influenza",
+  "kind": "physical",            // physical | mental | injury
+  "course": "acute",             // acute | chronic | progressive
+  "severity": 2,
+  "durationYears": [1, 2],       // acute only
+  "healthPerYear": -3,           // yearly drains
+  "happinessPerYear": -2,
+  "escalatePerYear": 1,          // progressive only — drain worsens
+  "lethalPerYear": 0.02,         // optional death roll per year
+  "treatable": true,
+  "onsetWeight": 0.012,          // random contraction chance per eligible year
+  "conditions": { "kind": "age", "min": 1 },
+  "treatments": [
+    { "id": "antivirals", "label": "Doctor visit + antivirals",
+      "provider": "gp",            // gp | therapist | specialist | surgeon | er | self
+      "cost": 120, "cureChance": 0.7, "relieveHealth": 3 }
+  ]
+}
+```
+
+Balance contract: combined ailment drain is capped at -3 health/year, mild
+recovery (+3) applies while a life carries little condition load, and every
+lethal bundled disease is age-gated — no early-life death spikes.
+
 ## Triggering & testing events
 
 Each year the engine gathers every event whose `conditions` pass (and whose
@@ -140,9 +219,11 @@ npx vite-node scripts/distribution-report.ts 5000   # firing stats over N lives
 The Mod Editor's *Playtest* button also drops your current graph into the
 simulator as a temporary pack.
 
-Bundled packs live in `src/packs/` and are registered in `src/App.tsx`
-(`BUNDLED_PACKS`); each one gets a checkbox in the game's "Loaded packs"
-panel. The bundled **Total Chaos Pack** (`src/packs/chaos.json`) adds ~40
+Bundled packs live in `src/packs/` — flat `*.json` files or nested
+`<dir>/pack.json` manifests — and are discovered automatically by
+`loadBundledPacks()` in `src/packs/index.ts`. Each one gets a checkbox in the
+game's "Loaded packs" panel, and nested packs show per-section checkboxes.
+The bundled **Total Chaos Pack** (`src/packs/chaos.json`) adds ~40
 absurd events — goose vendettas, viral fame, crypto prophets, haunted
 inheritances — on top of the core pack. Untick it for a calmer life.
 
