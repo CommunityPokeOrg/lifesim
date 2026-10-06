@@ -32,6 +32,7 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const eventIds = useMemo(() => nodes.map((n) => n.id), [nodes]);
@@ -113,6 +114,7 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
     };
     setNodes((ns) => [...ns, node]);
     setSelectedId(id);
+    setSheetOpen(true);
   };
 
   const importPack = async (file: File) => {
@@ -169,6 +171,12 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
           <button className="btn" onClick={exportPack}>Export JSON</button>
           <button className="btn" onClick={validate}>Validate</button>
           <button className="btn primary" onClick={playtest}>Playtest ▶</button>
+          <button
+            className="btn inspector-toggle"
+            onClick={() => setSheetOpen((o) => !o)}
+          >
+            {sheetOpen ? "Hide panel" : "Panel"}
+          </button>
           <input
             ref={fileRef}
             type="file"
@@ -185,57 +193,69 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onEdgesDelete={onEdgesDelete}
-          onNodeClick={(_, n) => setSelectedId(n.id)}
-          onPaneClick={() => setSelectedId(null)}
+          onNodeClick={(_, n) => { setSelectedId(n.id); setSheetOpen(true); }}
+          onPaneClick={() => { setSelectedId(null); setSheetOpen(false); }}
           onNodeDragStop={(_, n) =>
             mutateNode(n.id, (ev) => ({ ...ev, ui: { x: Math.round(n.position.x), y: Math.round(n.position.y) } }))
           }
           deleteKeyCode={["Backspace", "Delete"]}
+          minZoom={0.15}
+          panOnDrag
+          zoomOnPinch
           fitView
         >
           <Background />
           <Controls />
           <MiniMap pannable zoomable />
         </ReactFlow>
+        {status && !sheetOpen && (
+          <div className={`editor-status ${status.ok ? "ok" : "err"}`}>{status.text}</div>
+        )}
       </div>
-      {selected ? (
-        <EventInspector
-          event={selected.data.event}
-          eventIds={eventIds}
-          onChange={(ev) => mutateNode(selected.id, () => ev)}
-          onDelete={() => {
-            setNodes((ns) => {
-              const next = ns.filter((n) => n.id !== selected.id);
-              setEdges(packToEdges(next));
-              return next;
-            });
-            setSelectedId(null);
-          }}
-        />
-      ) : (
-        <div className="inspector">
-          <h3>Pack</h3>
-          <div className="field"><label>id</label>
-            <input type="text" value={meta.id} onChange={(e) => setMeta({ ...meta, id: e.target.value })} /></div>
-          <div className="field"><label>name</label>
-            <input type="text" value={meta.name} onChange={(e) => setMeta({ ...meta, name: e.target.value })} /></div>
-          <div className="field"><label>version</label>
-            <input type="text" value={meta.version} onChange={(e) => setMeta({ ...meta, version: e.target.value })} /></div>
-          <div className="field"><label>description</label>
-            <textarea rows={3} value={meta.description ?? ""} onChange={(e) => setMeta({ ...meta, description: e.target.value })} /></div>
-          <p style={{ color: "var(--muted)", fontSize: 12 }}>
-            Click a node to edit it. Drag from a choice handle (right side) to
-            another node to create a <code>goto</code> chain. Select an edge and
-            press Delete to remove it.
-          </p>
-          {status && <div className={status.ok ? "ok" : "err"}>{status.text}</div>}
-        </div>
-      )}
-      {selected && status && (
-        <div style={{ position: "fixed", bottom: 10, right: 350, zIndex: 20, maxWidth: 400 }}>
-          <div className={status.ok ? "ok" : "err"}>{status.text}</div>
-        </div>
-      )}
+      <aside className={sheetOpen ? "inspector-sheet open" : "inspector-sheet"}>
+        <button
+          className="sheet-handle"
+          aria-label="Toggle inspector panel"
+          onClick={() => setSheetOpen((o) => !o)}
+        >
+          <span className="sheet-grip" />
+        </button>
+        {selected ? (
+          <EventInspector
+            event={selected.data.event}
+            eventIds={eventIds}
+            onChange={(ev) => mutateNode(selected.id, () => ev)}
+            onDelete={() => {
+              setNodes((ns) => {
+                const next = ns.filter((n) => n.id !== selected.id);
+                setEdges(packToEdges(next));
+                return next;
+              });
+              setSelectedId(null);
+            }}
+          />
+        ) : (
+          <div className="inspector">
+            <h3>Pack</h3>
+            <div className="field"><label>id</label>
+              <input type="text" value={meta.id} onChange={(e) => setMeta({ ...meta, id: e.target.value })} /></div>
+            <div className="field"><label>name</label>
+              <input type="text" value={meta.name} onChange={(e) => setMeta({ ...meta, name: e.target.value })} /></div>
+            <div className="field"><label>version</label>
+              <input type="text" value={meta.version} onChange={(e) => setMeta({ ...meta, version: e.target.value })} /></div>
+            <div className="field"><label>description</label>
+              <textarea rows={3} value={meta.description ?? ""} onChange={(e) => setMeta({ ...meta, description: e.target.value })} /></div>
+            <p style={{ color: "var(--muted)", fontSize: 12 }}>
+              Tap a node to edit it. Drag from a choice handle (right side) to
+              another node to create a <code>goto</code> chain. Select an edge and
+              press Delete to remove it.
+            </p>
+          </div>
+        )}
+        {status && sheetOpen && (
+          <div className={`inspector-status ${status.ok ? "ok" : "err"}`}>{status.text}</div>
+        )}
+      </aside>
     </div>
   );
 }
