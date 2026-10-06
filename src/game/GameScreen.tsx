@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { LifeSim } from "../engine/engine";
 import { validatePack } from "../engine/schema";
 import { STAT_KEYS, type EventPack } from "../engine/types";
+import ActionsPanel from "./ActionsPanel";
 import StatBar from "./StatBar";
 
 interface Props {
@@ -72,6 +73,19 @@ export default function GameScreen({ packs, bundledPacks, enabledPackIds, onTogg
               <StatBar key={k} name={k} value={c.stats[k]} />
             ))}
             <div className="money">${c.money.toLocaleString()}</div>
+            {typeof c.flags.job === "string" && (
+              <div className="char-job">{String(c.flags.job)}</div>
+            )}
+            {(Number(c.flags.savings ?? 0) > 0 || Number(c.flags.invested ?? 0) > 0) && (
+              <div className="char-finance">
+                {Number(c.flags.savings ?? 0) > 0 && (
+                  <span>Savings ${Number(c.flags.savings).toLocaleString()}</span>
+                )}
+                {Number(c.flags.invested ?? 0) > 0 && (
+                  <span>Invested ${Number(c.flags.invested).toLocaleString()}</span>
+                )}
+              </div>
+            )}
             <div className="traits">
               {c.traits.map((t) => (
                 <span key={t} className="trait-chip">{t}</span>
@@ -143,6 +157,7 @@ export default function GameScreen({ packs, bundledPacks, enabledPackIds, onTogg
             ))}
           </div>
         )}
+        {sim && <ActionsPanel sim={sim} onAct={rerender} />}
         <div className="panel" style={{ flex: 1 }}>
           <h3>Life log</h3>
           <div className="lifelog" ref={logRef}>

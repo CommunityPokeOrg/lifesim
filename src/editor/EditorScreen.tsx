@@ -124,7 +124,8 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
         setStatus({ ok: false, text: res.errors.join("\n") });
         return;
       }
-      setMeta({ id: res.pack.id, name: res.pack.name, version: res.pack.version, description: res.pack.description }); // eslint-disable-line
+      const { events: _events, ...rest } = res.pack; // keep actions/items/jobs
+      setMeta(rest);
       const ns = packToNodes(res.pack);
       setNodes(ns);
       setEdges(packToEdges(ns));

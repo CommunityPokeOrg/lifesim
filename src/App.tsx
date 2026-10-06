@@ -1,15 +1,15 @@
 import { useMemo, useState } from "react";
-import corePack from "./packs/core.json";
-import chaosPack from "./packs/chaos.json";
+import { BUILTIN_PACKS } from "./packs";
 import type { EventPack } from "./engine/types";
 import GameScreen from "./game/GameScreen";
 import EditorScreen from "./editor/EditorScreen";
 
-/** Packs shipped with the app; each can be toggled on/off in the game UI. */
-const BUNDLED_PACKS: EventPack[] = [
-  corePack as EventPack,
-  chaosPack as EventPack,
-];
+/**
+ * Packs shipped with the app; each can be toggled on/off in the game UI.
+ * Sourced from src/packs/*.json via import.meta.glob, so a new bundled
+ * pack file needs no code changes here.
+ */
+const BUNDLED_PACKS: EventPack[] = BUILTIN_PACKS;
 
 export default function App() {
   const [screen, setScreen] = useState<"play" | "editor">("play");

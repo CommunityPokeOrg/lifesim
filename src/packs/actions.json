@@ -1,0 +1,760 @@
+{
+  "id": "actions",
+  "name": "Actions & Careers",
+  "version": "1.0.0",
+  "description": "Player actions: jobs, shop items, gambling, and per-year life choices.",
+  "events": [
+    {
+      "id": "debt_collector",
+      "title": "Debt collectors",
+      "description": "Some very persistent men in cheap suits want their money. Now.",
+      "category": "money",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "money", "op": "lt", "value": -3000 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 30,
+      "cooldown": 2,
+      "repeatDecay": 0.9,
+      "choices": [
+        {
+          "id": "beg",
+          "text": "Beg for more time",
+          "outcomes": [
+            {
+              "weight": 45,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -5 },
+                { "kind": "counter", "flag": "debt_warnings", "delta": 1 }
+              ],
+              "result": "They reluctantly give you another year. The interest keeps ticking."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                { "kind": "stat", "stat": "health", "delta": -12 },
+                { "kind": "stat", "stat": "happiness", "delta": -10 },
+                { "kind": "counter", "flag": "debt_warnings", "delta": 2 }
+              ],
+              "result": "They make an example of you. You limp home."
+            }
+          ]
+        },
+        {
+          "id": "smooth_talk",
+          "text": "Talk your way out",
+          "outcomes": [
+            {
+              "weight": 30,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 40 }
+              ],
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 3 }],
+              "result": "Somehow you charm them into leaving. For now."
+            },
+            {
+              "weight": 70,
+              "effects": [
+                { "kind": "stat", "stat": "health", "delta": -8 },
+                { "kind": "counter", "flag": "debt_warnings", "delta": 1 }
+              ],
+              "result": "They weren't buying it. A warning shot across the ribs."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gambling_problem",
+      "title": "The itch",
+      "description": "You keep checking the odds. Friends are starting to worry about you.",
+      "category": "casino",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "counter", "flag": "gambling_count", "op": "gte", "value": 8 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 35,
+      "cooldown": 3,
+      "repeatDecay": 0.8,
+      "weightModifiers": [
+        { "when": { "kind": "trait", "trait": "compulsive" }, "multiply": 1.6 }
+      ],
+      "choices": [
+        {
+          "id": "get_help",
+          "text": "Get help ($1,000)",
+          "conditions": { "kind": "money", "op": "gte", "value": 1000 },
+          "effects": [
+            { "kind": "money", "delta": -1000 },
+            { "kind": "flag", "flag": "gambling_count", "value": 0 },
+            { "kind": "trait", "trait": "compulsive", "action": "remove" },
+            { "kind": "stat", "stat": "happiness", "delta": 8 }
+          ],
+          "result": "Therapy works. The itch fades to a memory."
+        },
+        {
+          "id": "keep_playing",
+          "text": "You can quit anytime",
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": -6 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 3 },
+            { "kind": "trait", "trait": "compulsive", "action": "add" }
+          ],
+          "result": "Just one more bet. That's what you tell yourself."
+        }
+      ]
+    },
+    {
+      "id": "house_warming",
+      "title": "House warming",
+      "description": "Your own place finally feels like home. Time to show it off?",
+      "category": "life",
+      "conditions": { "kind": "flag", "flag": "item_house", "equals": true },
+      "weight": 8,
+      "cooldown": 4,
+      "repeatDecay": 0.5,
+      "choices": [
+        {
+          "id": "party",
+          "text": "Throw a party ($500)",
+          "conditions": { "kind": "money", "op": "gte", "value": 500 },
+          "effects": [
+            { "kind": "money", "delta": -500 },
+            { "kind": "stat", "stat": "happiness", "delta": 9 }
+          ],
+          "result": "A legendary night. The neighbors both envy and hate you."
+        },
+        {
+          "id": "quiet",
+          "text": "Enjoy a quiet evening in",
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": 4 },
+            { "kind": "stat", "stat": "health", "delta": 1 }
+          ],
+          "result": "Home sweet home."
+        }
+      ]
+    },
+    {
+      "id": "car_trouble",
+      "title": "Car trouble",
+      "description": "Your car coughs, shudders, and dies at a red light.",
+      "category": "life",
+      "conditions": { "kind": "flag", "flag": "item_used_car", "equals": true },
+      "weight": 5,
+      "cooldown": 4,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "repair",
+          "text": "Pay for repairs ($800)",
+          "conditions": { "kind": "money", "op": "gte", "value": 800 },
+          "effects": [
+            { "kind": "money", "delta": -800 },
+            { "kind": "stat", "stat": "happiness", "delta": -2 }
+          ],
+          "result": "Fixed. The mechanic even found your old sunglasses."
+        },
+        {
+          "id": "sell_parts",
+          "text": "Sell it for parts (+$1,200)",
+          "effects": [
+            { "kind": "money", "delta": 1200 },
+            { "kind": "loseitem", "item": "used_car" },
+            { "kind": "stat", "stat": "happiness", "delta": -4 }
+          ],
+          "result": "You watch it get towed away. Back to walking."
+        }
+      ]
+    }
+  ],
+  "jobs": [
+    {
+      "id": "retail_clerk",
+      "title": "Retail Clerk",
+      "salary": 19000,
+      "description": "Folding sweaters and surviving weekends.",
+      "conditions": { "kind": "age", "min": 16 },
+      "hireWeight": 85,
+      "hint": "Age 16+"
+    },
+    {
+      "id": "waiter",
+      "title": "Waiter",
+      "salary": 23000,
+      "description": "Tips, trays, and tired feet.",
+      "conditions": { "kind": "age", "min": 16 },
+      "hireWeight": 78,
+      "hireModifiers": [
+        { "when": { "kind": "trait", "trait": "charming" }, "add": 15 }
+      ],
+      "hint": "Age 16+"
+    },
+    {
+      "id": "lifeguard",
+      "title": "Lifeguard",
+      "salary": 25000,
+      "description": "Sun, whistles, and the occasional rescue.",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 16, "max": 45 },
+          { "kind": "any", "conditions": [
+            { "kind": "trait", "trait": "athletic" },
+            { "kind": "stat", "stat": "health", "op": "gte", "value": 60 }
+          ] }
+        ]
+      },
+      "hireWeight": 72,
+      "hint": "Age 16-45, fit (health 60+ or athletic)"
+    },
+    {
+      "id": "delivery_driver",
+      "title": "Delivery Driver",
+      "salary": 27000,
+      "description": "Your car, your route, your podcasts.",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "flag", "flag": "item_used_car", "equals": true }
+        ]
+      },
+      "hireWeight": 85,
+      "hint": "Age 18+ and own a car"
+    },
+    {
+      "id": "construction",
+      "title": "Construction Worker",
+      "salary": 36000,
+      "description": "Hard hat, hard work, decent money.",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "stat", "stat": "health", "op": "gte", "value": 50 }
+        ]
+      },
+      "hireWeight": 72,
+      "hireModifiers": [
+        { "when": { "kind": "trait", "trait": "athletic" }, "add": 15 }
+      ],
+      "hint": "Age 18+, health 50+"
+    },
+    {
+      "id": "office_worker",
+      "title": "Office Worker",
+      "salary": 44000,
+      "description": "Spreadsheets, standups, and stale coffee.",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "any", "conditions": [
+            { "kind": "flag", "flag": "degree", "equals": true },
+            { "kind": "flag", "flag": "night_school", "equals": true },
+            { "kind": "stat", "stat": "smarts", "op": "gte", "value": 65 }
+          ] }
+        ]
+      },
+      "hireWeight": 65,
+      "hireModifiers": [
+        { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 70 }, "add": 15 },
+        { "when": { "kind": "trait", "trait": "charming" }, "add": 10 }
+      ],
+      "hint": "Age 18+, degree / night school / smarts 65+"
+    },
+    {
+      "id": "teacher",
+      "title": "Teacher",
+      "salary": 54000,
+      "description": "Shaping young minds, losing your voice.",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 22 },
+          { "kind": "flag", "flag": "degree", "equals": true }
+        ]
+      },
+      "hireWeight": 58,
+      "hireModifiers": [
+        { "when": { "kind": "trait", "trait": "bookish" }, "add": 10 }
+      ],
+      "hint": "Age 22+ with a degree"
+    },
+    {
+      "id": "nurse",
+      "title": "Registered Nurse",
+      "salary": 58000,
+      "description": "Twelve-hour shifts that matter.",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 22 },
+          { "kind": "flag", "flag": "degree", "equals": true },
+          { "kind": "stat", "stat": "health", "op": "gte", "value": 40 }
+        ]
+      },
+      "hireWeight": 55,
+      "hint": "Age 22+ with a degree, health 40+"
+    },
+    {
+      "id": "software_engineer",
+      "title": "Software Engineer",
+      "salary": 82000,
+      "description": "Ship code, break prod, repeat.",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 21 },
+          { "kind": "any", "conditions": [
+            { "kind": "all", "conditions": [
+              { "kind": "flag", "flag": "degree", "equals": true },
+              { "kind": "stat", "stat": "smarts", "op": "gte", "value": 70 }
+            ] },
+            { "kind": "all", "conditions": [
+              { "kind": "flag", "flag": "item_laptop", "equals": true },
+              { "kind": "flag", "flag": "night_school", "equals": true },
+              { "kind": "stat", "stat": "smarts", "op": "gte", "value": 75 }
+            ] }
+          ] }
+        ]
+      },
+      "hireWeight": 50,
+      "hireModifiers": [
+        { "when": { "kind": "trait", "trait": "bookish" }, "add": 10 },
+        { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 85 }, "add": 15 }
+      ],
+      "hint": "Age 21+, degree & smarts 70+ (or laptop + night school + smarts 75+)"
+    },
+    {
+      "id": "executive",
+      "title": "Executive",
+      "salary": 98000,
+      "description": "Corner office. You've earned the view.",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 30 },
+          { "kind": "chose", "event": "promotion", "choice": "push" },
+          { "kind": "flag", "flag": "employed", "equals": true }
+        ]
+      },
+      "hireWeight": 45,
+      "hireModifiers": [
+        { "when": { "kind": "trait", "trait": "charming" }, "add": 15 }
+      ],
+      "hint": "Age 30+, employed, pushed for a promotion before"
+    },
+    {
+      "id": "doctor",
+      "title": "Doctor",
+      "salary": 135000,
+      "description": "A decade of study finally pays off.",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 26 },
+          { "kind": "flag", "flag": "degree", "equals": true },
+          { "kind": "stat", "stat": "smarts", "op": "gte", "value": 80 }
+        ]
+      },
+      "hireWeight": 35,
+      "hint": "Age 26+, degree, smarts 80+"
+    }
+  ],
+  "items": [
+    {
+      "id": "bicycle",
+      "name": "Bicycle",
+      "price": 250,
+      "description": "Fresh air and free cardio. +1 health every year.",
+      "conditions": { "kind": "age", "min": 8 },
+      "effects": [{ "kind": "stat", "stat": "happiness", "delta": 3 }],
+      "passiveEffects": [{ "kind": "stat", "stat": "health", "delta": 1 }]
+    },
+    {
+      "id": "lucky_charm",
+      "name": "Lucky Charm",
+      "price": 60,
+      "description": "A rabbit's foot. Probably nonsense. Probably.",
+      "conditions": { "kind": "age", "min": 10 },
+      "effects": [{ "kind": "stat", "stat": "happiness", "delta": 1 }]
+    },
+    {
+      "id": "laptop",
+      "name": "Laptop",
+      "price": 750,
+      "description": "Learn, work, tinker. +1 smarts every year.",
+      "conditions": { "kind": "age", "min": 14 },
+      "effects": [{ "kind": "stat", "stat": "smarts", "delta": 4 }],
+      "passiveEffects": [{ "kind": "stat", "stat": "smarts", "delta": 1 }]
+    },
+    {
+      "id": "gym_membership",
+      "name": "Gym Membership",
+      "price": 350,
+      "description": "Lifetime membership. +2 health every year.",
+      "conditions": { "kind": "age", "min": 14 },
+      "effects": [{ "kind": "stat", "stat": "happiness", "delta": 2 }],
+      "passiveEffects": [{ "kind": "stat", "stat": "health", "delta": 2 }]
+    },
+    {
+      "id": "spa_day",
+      "name": "Spa Day",
+      "price": 200,
+      "description": "Massages and cucumber water. Feel instantly better.",
+      "conditions": { "kind": "age", "min": 16 },
+      "repeatable": true,
+      "usesPerYear": 2,
+      "effects": [
+        { "kind": "stat", "stat": "health", "delta": 3 },
+        { "kind": "stat", "stat": "happiness", "delta": 4 }
+      ]
+    },
+    {
+      "id": "therapy_course",
+      "name": "Therapy",
+      "price": 1200,
+      "description": "Talking helps. Calms the mind — and any bad habits.",
+      "conditions": { "kind": "age", "min": 16 },
+      "repeatable": true,
+      "usesPerYear": 1,
+      "effects": [
+        { "kind": "stat", "stat": "happiness", "delta": 10 },
+        { "kind": "flag", "flag": "gambling_count", "value": 0 },
+        { "kind": "trait", "trait": "compulsive", "action": "remove" }
+      ]
+    },
+    {
+      "id": "night_school",
+      "name": "Night School Course",
+      "price": 4000,
+      "description": "An employer-recognized qualification, no degree needed.",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "degree", "equals": true } }
+        ]
+      },
+      "effects": [
+        { "kind": "stat", "stat": "smarts", "delta": 8 },
+        { "kind": "flag", "flag": "night_school", "value": true }
+      ],
+      "hint": "Age 18+, no degree"
+    },
+    {
+      "id": "used_car",
+      "name": "Used Car",
+      "price": 6000,
+      "description": "Runs most of the time. Unlocks delivery work.",
+      "conditions": { "kind": "age", "min": 18 },
+      "effects": [{ "kind": "stat", "stat": "happiness", "delta": 6 }],
+      "hint": "Age 18+"
+    },
+    {
+      "id": "house",
+      "name": "House",
+      "price": 150000,
+      "description": "A place that's really yours. +2 happiness every year.",
+      "conditions": { "kind": "age", "min": 18 },
+      "effects": [{ "kind": "stat", "stat": "happiness", "delta": 15 }],
+      "passiveEffects": [{ "kind": "stat", "stat": "happiness", "delta": 2 }],
+      "hint": "Age 18+"
+    }
+  ],
+  "actions": [
+    {
+      "id": "act_study",
+      "title": "Hit the books",
+      "description": "Study hard for a year. +5 smarts.",
+      "category": "life",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 5 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "effects": [
+        { "kind": "stat", "stat": "smarts", "delta": 5 },
+        { "kind": "stat", "stat": "happiness", "delta": -2 }
+      ],
+      "result": "A year of flashcards and late nights. You're sharper."
+    },
+    {
+      "id": "act_exercise",
+      "title": "Exercise",
+      "description": "Train regularly. +4 health, +2 happiness.",
+      "category": "life",
+      "conditions": { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } },
+      "effects": [
+        { "kind": "stat", "stat": "health", "delta": 4 },
+        { "kind": "stat", "stat": "happiness", "delta": 2 }
+      ],
+      "result": "Sore but stronger. Worth it."
+    },
+    {
+      "id": "act_socialize",
+      "title": "Go out and socialize",
+      "description": "Parties, hobbies, new faces. +5 happiness.",
+      "category": "life",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 13 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "outcomes": [
+        {
+          "weight": 12,
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 5 }],
+          "result": "You meet someone interesting…",
+          "goto": "meet_partner"
+        },
+        {
+          "weight": 88,
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 5 }],
+          "result": "Good laughs with good people."
+        }
+      ]
+    },
+    {
+      "id": "act_deposit",
+      "title": "Put $500 into savings",
+      "description": "Safe from muggings and impulse buys. Earns 3% interest a year.",
+      "category": "life",
+      "usesBudget": false,
+      "usesPerYear": 3,
+      "conditions": { "kind": "money", "op": "gte", "value": 500 },
+      "cost": 500,
+      "effects": [{ "kind": "counter", "flag": "savings", "delta": 500 }],
+      "result": "$500 tucked away where it can't hurt you.",
+      "hint": "Need $500 in cash"
+    },
+    {
+      "id": "act_withdraw",
+      "title": "Withdraw all savings",
+      "description": "Move your savings back into cash.",
+      "category": "life",
+      "usesBudget": false,
+      "usesPerYear": 4,
+      "conditions": { "kind": "counter", "flag": "savings", "op": "gte", "value": 1 },
+      "effects": [{ "kind": "collect", "flag": "savings" }],
+      "result": "Savings emptied back into your wallet."
+    },
+    {
+      "id": "act_invest",
+      "title": "Invest $1,000",
+      "description": "Into the market. Grows ~9% most years — until it doesn't.",
+      "category": "life",
+      "usesBudget": false,
+      "usesPerYear": 2,
+      "conditions": { "kind": "money", "op": "gte", "value": 1000 },
+      "cost": 1000,
+      "effects": [{ "kind": "counter", "flag": "invested", "delta": 1000 }],
+      "result": "$1,000 rides the market.",
+      "hint": "Need $1,000 in cash"
+    },
+    {
+      "id": "act_divest",
+      "title": "Cash out investments",
+      "description": "Sell everything and pocket whatever it's worth now.",
+      "category": "life",
+      "usesBudget": false,
+      "usesPerYear": 2,
+      "conditions": { "kind": "counter", "flag": "invested", "op": "gte", "value": 1 },
+      "effects": [{ "kind": "collect", "flag": "invested" }],
+      "result": "You liquidate your portfolio."
+    },
+    {
+      "id": "act_lottery",
+      "title": "Buy a lottery ticket ($20)",
+      "description": "A shot at $100,000. A long shot.",
+      "category": "casino",
+      "cost": 20,
+      "usesPerYear": 5,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "money", "op": "gte", "value": 20 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "outcomes": [
+        {
+          "weight": 1,
+          "weightModifiers": [
+            { "when": { "kind": "trait", "trait": "lucky" }, "add": 3 },
+            { "when": { "kind": "flag", "flag": "item_lucky_charm", "equals": true }, "add": 1 }
+          ],
+          "effects": [
+            { "kind": "money", "delta": 100000 },
+            { "kind": "stat", "stat": "happiness", "delta": 30 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 1 }
+          ],
+          "result": "JACKPOT! A hundred grand, all yours."
+        },
+        {
+          "weight": 9,
+          "effects": [
+            { "kind": "money", "delta": 200 },
+            { "kind": "stat", "stat": "happiness", "delta": 4 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 1 }
+          ],
+          "result": "A $200 win! Better than nothing."
+        },
+        {
+          "weight": 90,
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": -1 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 1 }
+          ],
+          "result": "Nothing. The ticket goes in the bin."
+        }
+      ],
+      "hint": "Age 18+, $20"
+    },
+    {
+      "id": "act_coinflip",
+      "title": "Coin flip ($50)",
+      "description": "Double or nothing. The house wins ties.",
+      "category": "casino",
+      "cost": 50,
+      "allowDebt": true,
+      "usesPerYear": 8,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "money", "op": "gt", "value": -5000 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "outcomes": [
+        {
+          "weight": 47,
+          "weightModifiers": [
+            { "when": { "kind": "trait", "trait": "lucky" }, "add": 8 },
+            { "when": { "kind": "flag", "flag": "item_lucky_charm", "equals": true }, "add": 4 }
+          ],
+          "effects": [
+            { "kind": "money", "delta": 100 },
+            { "kind": "stat", "stat": "happiness", "delta": 4 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 1 }
+          ],
+          "result": "Heads! You're up $50."
+        },
+        {
+          "weight": 53,
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": -3 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 1 }
+          ],
+          "result": "Tails. There goes $50."
+        }
+      ],
+      "hint": "Age 18+"
+    },
+    {
+      "id": "act_slots",
+      "title": "Slots ($100)",
+      "description": "Three reels, one dream. Jackpot pays 40x.",
+      "category": "casino",
+      "cost": 100,
+      "allowDebt": true,
+      "usesPerYear": 8,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "money", "op": "gt", "value": -5000 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "outcomes": [
+        {
+          "weight": 3,
+          "weightModifiers": [
+            { "when": { "kind": "trait", "trait": "lucky" }, "add": 3 },
+            { "when": { "kind": "flag", "flag": "item_lucky_charm", "equals": true }, "add": 1 }
+          ],
+          "effects": [
+            { "kind": "money", "delta": 4000 },
+            { "kind": "stat", "stat": "happiness", "delta": 15 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 1 }
+          ],
+          "result": "SEVEN-SEVEN-SEVEN! $4,000 spills out."
+        },
+        {
+          "weight": 15,
+          "effects": [
+            { "kind": "money", "delta": 250 },
+            { "kind": "stat", "stat": "happiness", "delta": 5 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 1 }
+          ],
+          "result": "Two cherries — $250 back."
+        },
+        {
+          "weight": 82,
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": -3 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 1 }
+          ],
+          "result": "Cherry, bell, lemon. Nothing."
+        }
+      ],
+      "hint": "Age 18+"
+    },
+    {
+      "id": "act_longshot",
+      "title": "Long-shot bet ($200)",
+      "description": "10-to-1 on the underdog. High risk, high thrill.",
+      "category": "casino",
+      "cost": 200,
+      "allowDebt": true,
+      "usesPerYear": 5,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "money", "op": "gt", "value": -5000 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "outcomes": [
+        {
+          "weight": 12,
+          "weightModifiers": [
+            { "when": { "kind": "trait", "trait": "lucky" }, "add": 6 }
+          ],
+          "effects": [
+            { "kind": "money", "delta": 2000 },
+            { "kind": "stat", "stat": "happiness", "delta": 12 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 2 }
+          ],
+          "result": "IT COMES IN! $2,000 on a hunch."
+        },
+        {
+          "weight": 88,
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": -6 },
+            { "kind": "counter", "flag": "gambling_count", "delta": 2 }
+          ],
+          "result": "The favorite wins, as favorites do. $200 gone.",
+          "goto": "debt_collector"
+        }
+      ],
+      "hint": "Age 18+"
+    }
+  ]
+}

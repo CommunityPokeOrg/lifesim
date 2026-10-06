@@ -49,7 +49,9 @@ export type Condition =
   | { kind: "money"; op?: CompareOp; value: number }
   | { kind: "trait"; trait: string }
   | { kind: "flag"; flag: string; equals?: unknown }
-  | { kind: "chose"; event: string; choice: string };
+  | { kind: "chose"; event: string; choice: string }
+  /** Numeric compare on a counter flag (counters are set by `counter` effects). */
+  | { kind: "counter"; flag: string; op?: CompareOp; value: number };
 
 export interface WeightModifier {
   /** Only applies when this condition holds. */
@@ -66,6 +68,11 @@ export type Effect =
   | { kind: "trait"; trait: string; action: "add" | "remove" }
   | { kind: "flag"; flag: string; value: unknown }
   | { kind: "unflag"; flag: string }
+  | { kind: "counter"; flag: string; delta: number }
+  /** Move a counter flag's value into money and zero it (liquidate savings). */
+  | { kind: "collect"; flag: string }
+  /** Remove an owned shop item (and its item_<id> flag). */
+  | { kind: "loseitem"; item: string }
   | { kind: "die"; cause: string };
 
 export interface Outcome {
@@ -127,6 +134,80 @@ export interface EventPack {
   version: string;
   description?: string;
   events: SimEvent[];
+  /** Optional player-initiated actions (casino, life choices…). */
+  actions?: GameAction[];
+  /** Optional purchasable items for the shop. */
+  items?: ShopItem[];
+  /** Optional jobs the character can apply for. */
+  jobs?: Job[];
+}
+
+/* ------------------------------- actions ------------------------------- */
+
+/**
+ * A player-initiated action on the play screen. Conditions gate availability
+ * (age, education, flags, past choices — same DSL as events). Resolves like
+ * an event choice: optional weighted `outcomes`, `effects`, and `goto` chains
+ * into the event pool, so actions can trigger pack events.
+ */
+export interface GameAction {
+  id: string;
+  title: string;
+  description?: string;
+  /** UI grouping: "casino", "life", "work", or a custom label. */
+  category?: string;
+  conditions?: Condition;
+  /** Money charged up front (may push money negative if `allowDebt`). */
+  cost?: number;
+  /** Allow the cost to take money below zero (debt). Default false. */
+  allowDebt?: boolean;
+  /** Max uses per year. Default 1. */
+  usesPerYear?: number;
+  /** Usable at most once per life. */
+  once?: boolean;
+  /** Counts against the per-year action budget. Default: only "life"
+   *  category actions consume budget. */
+  usesBudget?: boolean;
+  outcomes?: Outcome[];
+  effects?: Effect[];
+  result?: string;
+  goto?: string;
+  /** Cosmetic hint shown when conditions aren't met ("needs a degree"). */
+  hint?: string;
+}
+
+/** A purchasable shop item with lasting effects. */
+export interface ShopItem {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  /** Gate: e.g. a car requires a minimum age. */
+  conditions?: Condition;
+  /** Can be re-bought (consumable). Default: own at most one. */
+  repeatable?: boolean;
+  /** Max purchases per year (repeatable items only). */
+  usesPerYear?: number;
+  /** Applied once on purchase. */
+  effects?: Effect[];
+  /** Applied every year while owned (item keeps paying off). */
+  passiveEffects?: Effect[];
+  hint?: string;
+}
+
+/** A job the character can apply for via the actions panel. */
+export interface Job {
+  id: string;
+  title: string;
+  /** Salary paid per year by the engine's passive tick. */
+  salary: number;
+  description?: string;
+  /** Gate on age, education, flags, past choices, items, stats… */
+  conditions?: Condition;
+  /** Base hire chance 0-100 (default 65), adjusted by `hireModifiers`. */
+  hireWeight?: number;
+  hireModifiers?: WeightModifier[];
+  hint?: string;
 }
 
 /* --------------------------------- runtime --------------------------------- */

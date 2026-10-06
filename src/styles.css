@@ -301,6 +301,9 @@ button {
     padding: 10px;
     overflow-y: auto;
     align-content: start;
+    /* items carry min-height:0 which lets auto rows clamp to min-content and
+       paint over siblings once a column is taller than the viewport */
+    grid-auto-rows: max-content;
   }
   .panel { padding: 12px; }
   .char-name { font-size: 22px; }
@@ -417,4 +420,82 @@ button {
 
 @media (max-width: 420px) {
   .packs-hint { display: none; }
+}
+
+/* ------------------------------- actions panel ------------------------------ */
+
+.actions-panel { max-height: 46vh; overflow-y: auto; }
+
+.action-group {
+  border-top: 1px solid var(--border);
+  padding: 4px 0 10px;
+}
+.action-group:first-of-type { border-top: none; }
+.action-group summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 0;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.action-group summary::before { content: "▸"; }
+.action-group[open] summary::before { content: "▾"; }
+
+.action-badge {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.action-note { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+
+.action-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  cursor: pointer;
+}
+.action-btn:hover:not(:disabled) { border-color: var(--accent); }
+.action-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.action-btn.danger-lite { border-color: var(--danger); color: var(--danger); }
+
+.action-title { display: block; font-size: 14px; font-weight: 600; }
+.action-sub { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.action-reason { display: block; font-size: 11px; color: var(--danger); margin-top: 3px; }
+
+.char-job { color: var(--accent); font-size: 13px; margin-top: 4px; }
+.char-finance {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+@media (max-width: 860px) {
+  .actions-panel { max-height: none; overflow-y: visible; }
+  .action-group summary { font-size: 15px; padding: 12px 0; min-height: 44px; }
+  .action-btn { padding: 14px 16px; min-height: 48px; margin-bottom: 10px; }
+  .action-title { font-size: 16px; }
+  .action-sub { font-size: 14px; }
+  .action-reason { font-size: 13px; }
 }

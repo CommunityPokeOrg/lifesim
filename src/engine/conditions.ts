@@ -44,6 +44,8 @@ export function evalCondition(cond: Condition | undefined, c: Character): boolea
         : Boolean(c.flags[cond.flag]);
     case "chose":
       return c.history[cond.event] === cond.choice;
+    case "counter":
+      return compare(Number(c.flags[cond.flag] ?? 0), cond.op ?? "gte", cond.value);
   }
 }
 

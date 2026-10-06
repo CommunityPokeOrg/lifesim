@@ -1,13 +1,17 @@
 import { evalCondition, effectiveWeight } from "./conditions";
+import { actionYearTick } from "./actions";
 import { makeRng, weightedPick, type Rng } from "./rng";
 import type {
   Character,
   Choice,
   Effect,
   EventPack,
+  GameAction,
+  Job,
   LogEntry,
   Outcome,
   PendingEvent,
+  ShopItem,
   SimEvent,
   StatKey,
 } from "./types";
@@ -40,6 +44,10 @@ export interface SimOptions {
 export class LifeSim {
   readonly rng: Rng;
   readonly events = new Map<string, SimEvent>();
+  /** Player-initiated actions, shop items and jobs, merged from packs. */
+  readonly actions = new Map<string, GameAction>();
+  readonly items = new Map<string, ShopItem>();
+  readonly jobs = new Map<string, Job>();
   character: Character;
   log: LogEntry[] = [];
   pending: PendingEvent | null = null;
@@ -50,9 +58,12 @@ export class LifeSim {
     this.character = this.birth(opts.name ?? "Alex");
   }
 
-  /** Merge a pack's events into the pool. Ids must be unique across packs. */
+  /** Merge a pack's content into the pool. Ids must be unique across packs. */
   loadPack(pack: EventPack) {
     for (const ev of pack.events) this.events.set(ev.id, ev);
+    for (const a of pack.actions ?? []) this.actions.set(a.id, a);
+    for (const i of pack.items ?? []) this.items.set(i.id, i);
+    for (const j of pack.jobs ?? []) this.jobs.set(j.id, j);
   }
 
   private birth(name: string): Character {
@@ -108,6 +119,9 @@ export class LifeSim {
       }
     }
     if (c.flags.partner) c.stats.happiness = clamp(c.stats.happiness + 1);
+
+    // Items, savings, investments, debt interest and per-year action resets.
+    notes.push(...actionYearTick(this));
 
     // Age-related health drift.
     if (c.age > 85) c.stats.health = clamp(c.stats.health - 6);
@@ -237,7 +251,7 @@ export class LifeSim {
     this.resolveChoice(choice, 0);
   }
 
-  private resolveChoice(choice: Choice, depth: number) {
+  resolveChoice(choice: Choice, depth: number) {
     const c = this.character;
     const outcome = this.pickOutcome(choice);
     if (outcome?.effects) this.applyEffects(outcome.effects);
@@ -270,6 +284,8 @@ export class LifeSim {
     }
     // A `once` event that already fired can't be re-entered via goto.
     if (ev.once && this.character.firedOnce.includes(ev.id)) return;
+    // The target's gate conditions still apply for chained events.
+    if (!evalCondition(ev.conditions, this.character)) return;
     const choices = ev.choices.filter((ch) => evalCondition(ch.conditions, this.character));
     if (!choices.length) return;
     this.pending = { event: ev, choices };
@@ -296,6 +312,19 @@ export class LifeSim {
         case "unflag":
           delete c.flags[e.flag];
           break;
+        case "counter":
+          c.flags[e.flag] = Number(c.flags[e.flag] ?? 0) + e.delta;
+          break;
+        case "collect":
+          c.money += Number(c.flags[e.flag] ?? 0);
+          c.flags[e.flag] = 0;
+          break;
+        case "loseitem": {
+          const items = (c.flags.items as string[] | undefined) ?? [];
+          c.flags.items = items.filter((i) => i !== e.item);
+          delete c.flags[`item_${e.item}`];
+          break;
+        }
         case "die":
           this.die(e.cause);
           break;

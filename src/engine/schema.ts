@@ -26,6 +26,12 @@ const condition: z.ZodType<unknown> = z.lazy(() =>
     z.object({ kind: z.literal("trait"), trait: z.string().min(1).max(64) }),
     z.object({ kind: z.literal("flag"), flag: z.string().min(1).max(64), equals: z.unknown().optional() }),
     z.object({ kind: z.literal("chose"), event: id, choice: id }),
+    z.object({
+      kind: z.literal("counter"),
+      flag: z.string().min(1).max(64),
+      op: compareOp.optional(),
+      value: z.number(),
+    }),
   ]),
 );
 
@@ -41,6 +47,9 @@ const effect = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("trait"), trait: z.string().min(1).max(64), action: z.enum(["add", "remove"]) }),
   z.object({ kind: z.literal("flag"), flag: z.string().min(1).max(64), value: z.unknown() }),
   z.object({ kind: z.literal("unflag"), flag: z.string().min(1).max(64) }),
+  z.object({ kind: z.literal("counter"), flag: z.string().min(1).max(64), delta: z.number().min(-1e9).max(1e9) }),
+  z.object({ kind: z.literal("collect"), flag: z.string().min(1).max(64) }),
+  z.object({ kind: z.literal("loseitem"), item: id }),
   z.object({ kind: z.literal("die"), cause: z.string().min(1).max(200) }),
 ]);
 
@@ -78,12 +87,57 @@ export const simEventSchema = z.object({
   ui: z.object({ x: z.number(), y: z.number() }).optional(),
 });
 
+const gameAction = z.object({
+  id,
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  category: z.string().max(64).optional(),
+  conditions: condition.optional(),
+  cost: z.number().min(0).max(1e9).optional(),
+  allowDebt: z.boolean().optional(),
+  usesPerYear: z.number().int().min(1).max(100).optional(),
+  once: z.boolean().optional(),
+  usesBudget: z.boolean().optional(),
+  outcomes: z.array(outcome).min(1).max(20).optional(),
+  effects: z.array(effect).max(50).optional(),
+  result: z.string().min(1).max(2000).optional(),
+  goto: id.optional(),
+  hint: z.string().max(200).optional(),
+});
+
+const shopItem = z.object({
+  id,
+  name: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  price: z.number().min(0).max(1e9),
+  conditions: condition.optional(),
+  repeatable: z.boolean().optional(),
+  usesPerYear: z.number().int().min(1).max(100).optional(),
+  effects: z.array(effect).max(50).optional(),
+  passiveEffects: z.array(effect).max(50).optional(),
+  hint: z.string().max(200).optional(),
+});
+
+const job = z.object({
+  id,
+  title: z.string().min(1).max(200),
+  salary: z.number().int().min(0).max(1e9),
+  description: z.string().max(2000).optional(),
+  conditions: condition.optional(),
+  hireWeight: z.number().min(0).max(100).optional(),
+  hireModifiers: z.array(weightModifier).max(20).optional(),
+  hint: z.string().max(200).optional(),
+});
+
 export const eventPackSchema = z.object({
   id,
   name: z.string().min(1).max(200),
   version: z.string().min(1).max(40),
   description: z.string().max(2000).optional(),
   events: z.array(simEventSchema).min(1).max(500),
+  actions: z.array(gameAction).max(200).optional(),
+  items: z.array(shopItem).max(200).optional(),
+  jobs: z.array(job).max(200).optional(),
 });
 
 export type ValidationResult =
@@ -127,6 +181,15 @@ export function validatePack(data: unknown): ValidationResult {
       for (const o of ch.outcomes ?? []) {
         checkGoto(o.goto, `event "${ev.id}" choice "${ch.id}" outcome`);
       }
+    }
+  }
+  // Actions/items/jobs share the pack's id namespace and need unique ids.
+  for (const list of [pack.actions ?? [], pack.items ?? [], pack.jobs ?? []]) {
+    for (const entry of list) {
+      if (ids.has(entry.id)) errors.push(`duplicate id "${entry.id}"`);
+      ids.add(entry.id);
+      // Note: action gotos are intentionally not checked — actions may chain
+      // into events defined by other packs, resolvable only at runtime.
     }
   }
   return errors.length ? { ok: false, errors } : { ok: true, pack };
