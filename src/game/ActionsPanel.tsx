@@ -14,6 +14,8 @@ interface Props {
   sim: LifeSim;
   /** Called after any action mutates the sim so the parent can re-render. */
   onAct: () => void;
+  /** On mobile, groups start collapsed so the panel reads as a compact menu. */
+  mobile?: boolean;
 }
 
 /**
@@ -21,7 +23,7 @@ interface Props {
  * All content comes from loaded packs — every button is pack data, and
  * disabled entries show why they're locked.
  */
-export default function ActionsPanel({ sim, onAct }: Props) {
+export default function ActionsPanel({ sim, onAct, mobile }: Props) {
   const c = sim.character;
   const busy = !!sim.pending || !c.alive;
 
@@ -48,7 +50,7 @@ export default function ActionsPanel({ sim, onAct }: Props) {
         </div>
       )}
 
-      <details className="action-group" open>
+      <details className="action-group" open={!mobile}>
         <summary>
           Life <span className="action-badge">{budget} left</span>
         </summary>
@@ -74,7 +76,7 @@ export default function ActionsPanel({ sim, onAct }: Props) {
         ))}
       </details>
 
-      <details className="action-group" open>
+      <details className="action-group" open={!mobile}>
         <summary>
           Jobs
           {c.flags.job ? <span className="action-badge">{String(c.flags.job)}</span> : null}
@@ -96,7 +98,7 @@ export default function ActionsPanel({ sim, onAct }: Props) {
         ))}
       </details>
 
-      <details className="action-group" open>
+      <details className="action-group" open={!mobile}>
         <summary>Shop</summary>
         {items.map((s) => (
           <ActionRow

@@ -181,6 +181,20 @@ button {
   font-weight: 600;
 }
 
+/* Collapsible side panels: on desktop the summary reads like the old h3 and
+   stays open; on mobile it becomes a tappable header (see media query). */
+details.fold > summary {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 1px;
+  list-style: none;
+}
+details.fold > summary::-webkit-details-marker { display: none; }
+.fold-mini { display: none; }
+
 /* --------------------------------- editor --------------------------------- */
 
 .editor {
@@ -305,7 +319,46 @@ button {
        paint over siblings once a column is taller than the viewport */
     grid-auto-rows: max-content;
   }
+  /* gameplay first: age-up, pending event, actions and log before the
+     collapsible character/packs panels */
+  .game > .center-col { order: -1; }
   .panel { padding: 12px; }
+
+  /* keep the main CTA reachable while scrolling */
+  .age-btn {
+    position: sticky;
+    top: 8px;
+    z-index: 12;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  }
+
+  /* folded panels: summary is a tappable header, shows a compact readout */
+  details.fold > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    margin-bottom: 0;
+    cursor: pointer;
+    font-size: 14px;
+    user-select: none;
+  }
+  details.fold[open] > summary { margin-bottom: 10px; }
+  details.fold > summary::before { content: "▸"; color: var(--accent); font-size: 12px; }
+  details.fold[open] > summary::before { content: "▾"; }
+  details.fold:not([open]) .fold-mini {
+    display: block;
+    margin-left: auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text);
+  }
   .char-name { font-size: 22px; }
   .stat-row { margin-bottom: 12px; }
   .stat-label { font-size: 14px; margin-bottom: 4px; }
