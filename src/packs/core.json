@@ -7,7 +7,7 @@
     {
       "id": "start_school",
       "title": "First day of school",
-      "description": "It's time to start elementary school.",
+      "description": "Elementary school awaits. You have strong opinions about this for someone in dinosaur pajamas.",
       "category": "school",
       "once": true,
       "forced": true,
@@ -16,12 +16,62 @@
       "choices": [
         {
           "id": "go",
-          "text": "Go to school",
+          "text": "Walk in like you own the place",
           "effects": [
             { "kind": "flag", "flag": "in_school", "value": true },
             { "kind": "stat", "stat": "happiness", "delta": 3 }
           ],
-          "result": "You enrolled in elementary school."
+          "result": "You enrolled. Recess ruled immediately."
+        },
+        {
+          "id": "fake_sick",
+          "text": "Fake a catastrophic tummy ache",
+          "outcomes": [
+            {
+              "weight": 30,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 20 }
+              ],
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 5 },
+                { "kind": "flag", "flag": "homeschooled", "value": true },
+                { "kind": "flag", "flag": "seeking_work", "value": true }
+              ],
+              "result": "Sold it. You watched cartoons while the other kids learned shapes."
+            },
+            {
+              "weight": 70,
+              "effects": [
+                { "kind": "flag", "flag": "in_school", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": -4 }
+              ],
+              "result": "The thermometer betrayed you. You were carried in mid-fake-fever."
+            }
+          ]
+        },
+        {
+          "id": "cling",
+          "text": "Latch onto your mom's leg and scream",
+          "outcomes": [
+            {
+              "weight": 15,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 4 },
+                { "kind": "stat", "stat": "smarts", "delta": -2 },
+                { "kind": "flag", "flag": "homeschooled", "value": true },
+                { "kind": "flag", "flag": "seeking_work", "value": true }
+              ],
+              "result": "Your parents caved. Your curriculum is now 'whatever's on TV'."
+            },
+            {
+              "weight": 85,
+              "effects": [
+                { "kind": "flag", "flag": "in_school", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": -5 }
+              ],
+              "result": "They peeled you off like a barnacle. A Mrs. Grubb is now your nemesis."
+            }
+          ]
         }
       ],
       "ui": { "x": 0, "y": 0 }
@@ -29,7 +79,7 @@
     {
       "id": "school_bully",
       "title": "School bully",
-      "description": "A bigger kid demands your lunch money.",
+      "description": "A bigger kid blocks the water fountain. He knows about the lunch money. He has a plan.",
       "category": "school",
       "conditions": {
         "kind": "all",
@@ -50,7 +100,7 @@
           "id": "hand_over",
           "text": "Hand over the money",
           "effects": [{ "kind": "stat", "stat": "happiness", "delta": -6 }],
-          "result": "You gave up your lunch money. It stung."
+          "result": "He leaves with your sandwich money and a piece of your dignity."
         },
         {
           "id": "fight_back",
@@ -66,7 +116,7 @@
                 { "kind": "stat", "stat": "happiness", "delta": 8 },
                 { "kind": "flag", "flag": "stood_up_to_bully", "value": true }
               ],
-              "result": "You won the fight. The bully never bothered you again."
+              "result": "You won. He respects you now, in the way bullies respect people who hit them."
             },
             {
               "weight": 70,
@@ -82,7 +132,7 @@
           "id": "tell_teacher",
           "text": "Tell a teacher",
           "effects": [{ "kind": "stat", "stat": "happiness", "delta": 2 }],
-          "result": "The teacher intervened. The bully got detention."
+          "result": "The teacher intervened. The bully got detention and a respect for authority he'll lose by Friday."
         }
       ],
       "ui": { "x": 260, "y": 0 }
@@ -90,7 +140,7 @@
     {
       "id": "study_choice",
       "title": "Study session",
-      "description": "A big test is coming. How do you spend the evening?",
+      "description": "A big test looms tomorrow. Your textbook sits unopened, judging you.",
       "category": "school",
       "conditions": {
         "kind": "all",
@@ -113,7 +163,7 @@
             { "kind": "stat", "stat": "smarts", "delta": 6 },
             { "kind": "stat", "stat": "happiness", "delta": -3 }
           ],
-          "result": "You studied until midnight. It paid off."
+          "result": "You studied until midnight. You now know things. Deeply concerning things about mitochondria."
         },
         {
           "id": "slack",
@@ -122,7 +172,29 @@
             { "kind": "stat", "stat": "happiness", "delta": 5 },
             { "kind": "stat", "stat": "smarts", "delta": -2 }
           ],
-          "result": "A fun evening, but you winged the test."
+          "result": "A great evening. Tomorrow-you will hate tonight-you."
+        },
+        {
+          "id": "steal_notes",
+          "text": "Permanently borrow the smart kid's notes",
+          "outcomes": [
+            {
+              "weight": 60,
+              "effects": [
+                { "kind": "stat", "stat": "smarts", "delta": 5 },
+                { "kind": "flag", "flag": "cheater", "value": true }
+              ],
+              "result": "Her handwriting is beautiful. Her trust in humanity: gone."
+            },
+            {
+              "weight": 40,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -6 },
+                { "kind": "flag", "flag": "detention", "value": true }
+              ],
+              "result": "Caught. Detention, plus a lecture on integrity you'll pretend to remember."
+            }
+          ]
         }
       ],
       "ui": { "x": 520, "y": 0 }
@@ -130,7 +202,7 @@
     {
       "id": "graduation",
       "title": "Graduation",
-      "description": "High school is over. What's next?",
+      "description": "Pomp, circumstance, and an itchy polyester gown. Adulthood awaits, and it charges rent.",
       "category": "school",
       "once": true,
       "forced": true,
@@ -152,7 +224,7 @@
             { "kind": "unflag", "flag": "in_school" },
             { "kind": "money", "delta": -20000 }
           ],
-          "result": "You got accepted! Student debt: $20,000."
+          "result": "You got accepted! Student debt acquired: $20,000. The loans send their regards."
         },
         {
           "id": "work",
@@ -161,7 +233,7 @@
             { "kind": "unflag", "flag": "in_school" },
             { "kind": "flag", "flag": "seeking_work", "value": true }
           ],
-          "result": "You entered the job market straight out of school."
+          "result": "No cap and gown debt for you. The workforce gets a fresh recruit."
         },
         {
           "id": "drift",
@@ -171,7 +243,7 @@
             { "kind": "flag", "flag": "seeking_work", "value": true },
             { "kind": "stat", "stat": "happiness", "delta": 8 }
           ],
-          "result": "You drifted happily for a while."
+          "result": "You drifted happily. The couch remembers you fondly."
         }
       ],
       "ui": { "x": 780, "y": 0 }
@@ -179,7 +251,7 @@
     {
       "id": "college_finals",
       "title": "Final exams",
-      "description": "College finals week. Your degree hangs in the balance.",
+      "description": "College finals week. Your degree, your GPA, and your caffeine tolerance hang in the balance.",
       "category": "school",
       "once": true,
       "conditions": {
@@ -207,7 +279,7 @@
                 { "kind": "flag", "flag": "seeking_work", "value": true },
                 { "kind": "stat", "stat": "happiness", "delta": 10 }
               ],
-              "result": "You graduated with honors!"
+              "result": "You graduated with honors! The tassel was, in fact, worth the hassle."
             },
             {
               "weight": 50,
@@ -216,7 +288,70 @@
                 { "kind": "flag", "flag": "seeking_work", "value": true },
                 { "kind": "stat", "stat": "happiness", "delta": -10 }
               ],
-              "result": "You failed your finals and dropped out."
+              "result": "You failed your finals and dropped out. Your diploma remains a screensaver."
+            }
+          ]
+        },
+        {
+          "id": "cheat",
+          "text": "Smuggle in answers on your forearm",
+          "outcomes": [
+            {
+              "weight": 55,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 10 },
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 70 }, "add": 15 }
+              ],
+              "effects": [
+                { "kind": "unflag", "flag": "in_college" },
+                { "kind": "flag", "flag": "degree", "value": true },
+                { "kind": "flag", "flag": "seeking_work", "value": true },
+                { "kind": "flag", "flag": "cheater", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": 8 }
+              ],
+              "result": "The degree is yours. Your conscience files a quiet complaint."
+            },
+            {
+              "weight": 45,
+              "effects": [
+                { "kind": "unflag", "flag": "in_college" },
+                { "kind": "flag", "flag": "seeking_work", "value": true },
+                { "kind": "flag", "flag": "expelled", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": -15 }
+              ],
+              "result": "Caught mid-glance. The proctor confiscated your forearm and your future."
+            }
+          ]
+        },
+        {
+          "id": "influencer",
+          "text": "Skip finals to go viral instead",
+          "outcomes": [
+            {
+              "weight": 15,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "lucky" }, "add": 20 },
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 20 },
+                { "when": { "kind": "stat", "stat": "looks", "op": "gte", "value": 70 }, "add": 15 }
+              ],
+              "effects": [
+                { "kind": "unflag", "flag": "in_college" },
+                { "kind": "flag", "flag": "employed", "value": true },
+                { "kind": "flag", "flag": "salary", "value": 90000 },
+                { "kind": "flag", "flag": "influencer", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": 20 }
+              ],
+              "result": "One unboxing video later, you're internet famous. Degree who?"
+            },
+            {
+              "weight": 85,
+              "effects": [
+                { "kind": "unflag", "flag": "in_college" },
+                { "kind": "flag", "flag": "seeking_work", "value": true },
+                { "kind": "flag", "flag": "failed_influencer", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": -8 }
+              ],
+              "result": "Twelve followers, nine of them bots. Back to the job market."
             }
           ]
         }
@@ -226,7 +361,7 @@
     {
       "id": "job_hunt",
       "title": "Job interview",
-      "description": "A local business is hiring. Interview day is here.",
+      "description": "A local business is hiring. You've rehearsed 'I'm a people person' in the mirror all week.",
       "category": "jobs",
       "conditions": {
         "kind": "all",
@@ -237,7 +372,7 @@
         ]
       },
       "weight": 45,
-      "cooldown": 3,
+      "cooldown": 4,
       "repeatDecay": 0.7,
       "choices": [
         {
@@ -257,12 +392,68 @@
                 { "kind": "flag", "flag": "salary", "value": 32000 },
                 { "kind": "stat", "stat": "happiness", "delta": 12 }
               ],
-              "result": "You got the job! Salary: $32,000/year."
+              "result": "You got the job! Salary: $32,000/year. Congrats on the stapler privileges."
             },
             {
               "weight": 60,
               "effects": [{ "kind": "stat", "stat": "happiness", "delta": -6 }],
-              "result": "They went with another candidate."
+              "result": "They went with someone 'more qualified.' Kevin. It was Kevin."
+            }
+          ]
+        },
+        {
+          "id": "bribe",
+          "text": "Bribe the receptionist for the questions ($500)",
+          "conditions": { "kind": "money", "op": "gte", "value": 500 },
+          "outcomes": [
+            {
+              "weight": 75,
+              "effects": [
+                { "kind": "money", "delta": -500 },
+                { "kind": "flag", "flag": "employed", "value": true },
+                { "kind": "unflag", "flag": "seeking_work" },
+                { "kind": "flag", "flag": "salary", "value": 32000 },
+                { "kind": "stat", "stat": "happiness", "delta": 10 }
+              ],
+              "result": "You nailed every answer. Suspiciously nailed them."
+            },
+            {
+              "weight": 25,
+              "effects": [
+                { "kind": "money", "delta": -500 },
+                { "kind": "stat", "stat": "happiness", "delta": -10 },
+                { "kind": "flag", "flag": "blacklisted", "value": true }
+              ],
+              "result": "She pocketed the cash AND told the manager. Bold move, wrong audience."
+            }
+          ]
+        },
+        {
+          "id": "lie",
+          "text": "Lie shamelessly on your resume",
+          "outcomes": [
+            {
+              "weight": 45,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 15 },
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 65 }, "add": 15 }
+              ],
+              "effects": [
+                { "kind": "flag", "flag": "employed", "value": true },
+                { "kind": "unflag", "flag": "seeking_work" },
+                { "kind": "flag", "flag": "salary", "value": 40000 },
+                { "kind": "flag", "flag": "resume_liar", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": 12 }
+              ],
+              "result": "Congratulations, 'Regional Synergy Director.' Pray nobody asks what that means."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -10 },
+                { "kind": "flag", "flag": "resume_fraud", "value": true }
+              ],
+              "result": "The background check took four minutes. You are now a cautionary tale in HR training."
             }
           ]
         }
@@ -272,7 +463,7 @@
     {
       "id": "promotion",
       "title": "Promotion opportunity",
-      "description": "Your boss hints a promotion is possible this year.",
+      "description": "Your boss says a promotion 'might be in the cards' — corporate for 'dance, monkey, dance.'",
       "category": "jobs",
       "conditions": {
         "kind": "all",
@@ -317,7 +508,34 @@
           "id": "coast",
           "text": "Keep coasting",
           "effects": [{ "kind": "stat", "stat": "happiness", "delta": 2 }],
-          "result": "You kept your head down and your evenings free."
+          "result": "You kept your head down and your evenings free. Lazy? No. Strategic."
+        },
+        {
+          "id": "credit_thief",
+          "text": "Take credit for the team's work",
+          "outcomes": [
+            {
+              "weight": 45,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 15 },
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 60 }, "add": 15 }
+              ],
+              "effects": [
+                { "kind": "flag", "flag": "salary", "value": 55000 },
+                { "kind": "stat", "stat": "happiness", "delta": 10 },
+                { "kind": "flag", "flag": "credit_thief", "value": true }
+              ],
+              "result": "Promoted! Your teammates' glares were worth it. Probably."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -8 },
+                { "kind": "flag", "flag": "known_fraud", "value": true }
+              ],
+              "result": "Your cubicle neighbor produced receipts. The promotion went to literally anyone else."
+            }
+          ]
         }
       ],
       "ui": { "x": 260, "y": 220 }
@@ -325,7 +543,7 @@
     {
       "id": "fired",
       "title": "Trouble at work",
-      "description": "You made a costly mistake and HR wants a word.",
+      "description": "You broke something expensive. HR sent a calendar invite titled 'Quick Chat' — the most ominous words in corporate history.",
       "category": "jobs",
       "conditions": { "kind": "flag", "flag": "employed", "equals": true },
       "weight": 6,
@@ -342,7 +560,7 @@
                 { "when": { "kind": "trait", "trait": "charming" }, "add": 25 }
               ],
               "effects": [{ "kind": "stat", "stat": "happiness", "delta": -3 }],
-              "result": "You kept your job with a formal warning."
+              "result": "You survived with a formal warning and a laminated card reading 'WE'RE A FAMILY.'"
             },
             {
               "weight": 35,
@@ -352,9 +570,81 @@
                 { "kind": "flag", "flag": "seeking_work", "value": true },
                 { "kind": "stat", "stat": "happiness", "delta": -12 }
               ],
-              "result": "You were fired on the spot."
+              "result": "HR read your apology back as evidence. You were fired on the spot."
             }
           ]
+        },
+        {
+          "id": "blame_dave",
+          "text": "Blame your coworker Dave",
+          "outcomes": [
+            {
+              "weight": 40,
+              "weightModifiers": [
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 60 }, "add": 20 },
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 10 }
+              ],
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 3 },
+                { "kind": "flag", "flag": "threw_dave_under_bus", "value": true }
+              ],
+              "result": "Dave is packing his desk. He waves at you. It is not friendly."
+            },
+            {
+              "weight": 60,
+              "effects": [
+                { "kind": "unflag", "flag": "employed" },
+                { "kind": "unflag", "flag": "salary" },
+                { "kind": "flag", "flag": "seeking_work", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": -14 },
+                { "kind": "flag", "flag": "known_weasel", "value": true }
+              ],
+              "result": "Nobody bought it. You're fired, and Dave got your parking spot."
+            }
+          ]
+        },
+        {
+          "id": "lawyer_up",
+          "text": "Lawyer up ($2,000 retainer)",
+          "conditions": { "kind": "money", "op": "gte", "value": 2000 },
+          "outcomes": [
+            {
+              "weight": 55,
+              "weightModifiers": [
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 65 }, "add": 15 }
+              ],
+              "effects": [
+                { "kind": "money", "delta": 6000 },
+                { "kind": "unflag", "flag": "employed" },
+                { "kind": "unflag", "flag": "salary" },
+                { "kind": "flag", "flag": "seeking_work", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": 8 }
+              ],
+              "result": "Wrongful-termination settlement. Your lawyer high-fived you in the parking lot."
+            },
+            {
+              "weight": 45,
+              "effects": [
+                { "kind": "money", "delta": -2000 },
+                { "kind": "unflag", "flag": "employed" },
+                { "kind": "unflag", "flag": "salary" },
+                { "kind": "flag", "flag": "seeking_work", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": -12 }
+              ],
+              "result": "Your case was dismissed in six minutes. The retainer is non-refundable."
+            }
+          ]
+        },
+        {
+          "id": "dramatic_quit",
+          "text": "Quit first, dramatically",
+          "effects": [
+            { "kind": "unflag", "flag": "employed" },
+            { "kind": "unflag", "flag": "salary" },
+            { "kind": "flag", "flag": "seeking_work", "value": true },
+            { "kind": "stat", "stat": "happiness", "delta": 6 }
+          ],
+          "result": "You flipped a desk plant and declared 'you can't fire me, I quit.' Janet from accounting slow-clapped."
         }
       ],
       "ui": { "x": 520, "y": 220 }
@@ -362,7 +652,7 @@
     {
       "id": "meet_partner",
       "title": "A chance encounter",
-      "description": "You meet someone charming at a friend's party.",
+      "description": "Someone charming laughs at your joke at a party. You briefly forget how elbows work.",
       "category": "relationships",
       "conditions": {
         "kind": "all",
@@ -408,7 +698,31 @@
           "id": "let_it_go",
           "text": "Just be friends",
           "effects": [{ "kind": "stat", "stat": "happiness", "delta": 2 }],
-          "result": "You made a good friend instead."
+          "result": "You made a good friend instead. Your romantic record remains spotless. Spotlessly empty."
+        },
+        {
+          "id": "rizz",
+          "text": "Deploy your worst pickup line",
+          "outcomes": [
+            {
+              "weight": 30,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 25 },
+                { "when": { "kind": "stat", "stat": "looks", "op": "gte", "value": 70 }, "add": 15 }
+              ],
+              "effects": [
+                { "kind": "flag", "flag": "partner", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": 12 },
+                { "kind": "flag", "flag": "questionable_rizz", "value": true }
+              ],
+              "result": "Against all laws of romance, it worked. They're into losers, apparently."
+            },
+            {
+              "weight": 70,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -8 }],
+              "result": "They laughed. Not with you. A drink was involved. On your shirt."
+            }
+          ]
         }
       ],
       "ui": { "x": 0, "y": 440 }
@@ -416,7 +730,7 @@
     {
       "id": "marriage",
       "title": "The big question",
-      "description": "Things are serious. Your partner seems ready for the next step.",
+      "description": "Things are serious. Your partner keeps 'accidentally' browsing ring listings out loud.",
       "category": "relationships",
       "cooldown": 4,
       "repeatDecay": 0.8,
@@ -460,7 +774,32 @@
           "id": "wait",
           "text": "Wait a bit longer",
           "effects": [],
-          "result": "You decided to wait. The relationship continued."
+          "result": "You decided to wait. The relationship continued, ringless but intact."
+        },
+        {
+          "id": "elope",
+          "text": "Elope at 3am",
+          "outcomes": [
+            {
+              "weight": 80,
+              "effects": [
+                { "kind": "flag", "flag": "married", "value": true },
+                { "kind": "money", "delta": -800 },
+                { "kind": "stat", "stat": "happiness", "delta": 12 }
+              ],
+              "result": "A 24-hour chapel, an Elvis officiant, zero in-laws. Iconic."
+            },
+            {
+              "weight": 20,
+              "effects": [
+                { "kind": "flag", "flag": "married", "value": true },
+                { "kind": "money", "delta": -800 },
+                { "kind": "stat", "stat": "happiness", "delta": -4 },
+                { "kind": "flag", "flag": "family_grudge", "value": true }
+              ],
+              "result": "Married! Your mother sent a card anyway. It is passive-aggressive."
+            }
+          ]
         }
       ],
       "ui": { "x": 260, "y": 440 }
@@ -468,7 +807,7 @@
     {
       "id": "breakup",
       "title": "Rocky patch",
-      "description": "You and your partner have been fighting a lot lately.",
+      "description": "You and your partner now argue about the correct way to load a dishwasher. There isn't one.",
       "category": "relationships",
       "conditions": {
         "kind": "all",
@@ -488,7 +827,7 @@
             { "kind": "money", "delta": -2000 },
             { "kind": "stat", "stat": "happiness", "delta": 10 }
           ],
-          "result": "Counseling helped. Things improved."
+          "result": "Counseling helped. You now fight about the dishwasher in healthier ways."
         },
         {
           "id": "split",
@@ -498,7 +837,19 @@
             { "kind": "unflag", "flag": "married" },
             { "kind": "stat", "stat": "happiness", "delta": -10 }
           ],
-          "result": "You went your separate ways."
+          "result": "You went your separate ways. The playlists will take longer to divide."
+        },
+        {
+          "id": "fresh_start",
+          "text": "Ghost them and move cities",
+          "effects": [
+            { "kind": "unflag", "flag": "partner" },
+            { "kind": "unflag", "flag": "married" },
+            { "kind": "money", "delta": -3000 },
+            { "kind": "stat", "stat": "happiness", "delta": 5 },
+            { "kind": "flag", "flag": "ghoster", "value": true }
+          ],
+          "result": "New city, new you, same unresolved issues. But the skyline is nicer."
         }
       ],
       "ui": { "x": 520, "y": 440 }
@@ -506,7 +857,7 @@
     {
       "id": "mugging_offer",
       "title": "Easy money?",
-      "description": "A shady acquaintance offers you cash to help rob a store.",
+      "description": "Your acquaintance 'Sketchy Ray' needs a lookout for a robbery. Pays cash. Asks no questions. Red flag count: nine.",
       "category": "crime",
       "conditions": {
         "kind": "all",
@@ -529,7 +880,7 @@
           "id": "refuse",
           "text": "Refuse",
           "effects": [{ "kind": "stat", "stat": "happiness", "delta": 2 }],
-          "result": "You walked away. Clean hands, quiet conscience."
+          "result": "You walked away. Clean hands, quiet conscience, zero cash."
         },
         {
           "id": "help",
@@ -541,7 +892,7 @@
                 { "when": { "kind": "trait", "trait": "lucky" }, "add": 25 }
               ],
               "effects": [{ "kind": "money", "delta": 4000 }],
-              "result": "The robbery went smoothly. You pocketed $4,000."
+              "result": "The robbery went smoothly. You pocketed $4,000 and a lifetime of looking over your shoulder."
             },
             {
               "weight": 55,
@@ -558,6 +909,29 @@
               "goto": "prison_arrival"
             }
           ]
+        },
+        {
+          "id": "snitch",
+          "text": "Tip off the cops",
+          "outcomes": [
+            {
+              "weight": 70,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 4 },
+                { "kind": "flag", "flag": "snitch", "value": true }
+              ],
+              "result": "The heist got busted before it started. Crime doesn't pay, but snitching feels okay."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                { "kind": "stat", "stat": "health", "delta": -12 },
+                { "kind": "stat", "stat": "happiness", "delta": -10 },
+                { "kind": "flag", "flag": "marked", "value": true }
+              ],
+              "result": "Word travels fast in the shady-acquaintance community. A brick through your window travels faster."
+            }
+          ]
         }
       ],
       "ui": { "x": 0, "y": 660 }
@@ -565,7 +939,7 @@
     {
       "id": "prison_arrival",
       "title": "Behind bars",
-      "description": "Your first night in prison. A cellmate sizes you up.",
+      "description": "Your first night in prison. Your cellmate has a teardrop tattoo. You have anxiety.",
       "category": "crime",
       "weight": 0,
       "choices": [
@@ -573,7 +947,7 @@
           "id": "keep_head_down",
           "text": "Keep your head down",
           "effects": [{ "kind": "stat", "stat": "happiness", "delta": -5 }],
-          "result": "You survived the first night unnoticed."
+          "result": "You survived the first night unnoticed, a ghost in an orange jumpsuit."
         },
         {
           "id": "stand_ground",
@@ -590,7 +964,30 @@
             {
               "weight": 60,
               "effects": [{ "kind": "stat", "stat": "health", "delta": -10 }],
-              "result": "It went badly. You spent a week in the infirmary."
+              "result": "It went badly. You spent a week in the infirmary reconsidering your brand."
+            }
+          ]
+        },
+        {
+          "id": "bluff",
+          "text": "Claim you're in for tax fraud",
+          "outcomes": [
+            {
+              "weight": 50,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 20 },
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 65 }, "add": 10 }
+              ],
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 3 },
+                { "kind": "flag", "flag": "white_collar_legend", "value": true }
+              ],
+              "result": "White-collar crime earns nods of respect. Someone asks you to do their taxes."
+            },
+            {
+              "weight": 50,
+              "effects": [{ "kind": "stat", "stat": "health", "delta": -6 }],
+              "result": "'Tax fraud?' your cellmate snorts. 'Cute.' You sleep facing the wall now."
             }
           ]
         }
@@ -600,7 +997,7 @@
     {
       "id": "mugged",
       "title": "Mugged!",
-      "description": "Someone jumps you in a dark alley and demands your wallet.",
+      "description": "A stranger emerges from a dark alley and demands your wallet. Your cardio finally matters.",
       "category": "crime",
       "conditions": {
         "kind": "all",
@@ -621,7 +1018,7 @@
             { "kind": "money", "delta": -500 },
             { "kind": "stat", "stat": "happiness", "delta": -8 }
           ],
-          "result": "You lost some cash but kept your teeth."
+          "result": "You lost some cash but kept your teeth. A fair trade, honestly."
         },
         {
           "id": "resist",
@@ -645,6 +1042,33 @@
               "result": "They won. You woke up in the hospital, poorer and bruised."
             }
           ]
+        },
+        {
+          "id": "counter_mug",
+          "text": "Mug them back",
+          "outcomes": [
+            {
+              "weight": 15,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "lucky" }, "add": 20 },
+                { "when": { "kind": "trait", "trait": "athletic" }, "add": 25 }
+              ],
+              "effects": [
+                { "kind": "money", "delta": 200 },
+                { "kind": "stat", "stat": "happiness", "delta": 8 },
+                { "kind": "flag", "flag": "mugged_the_mugger", "value": true }
+              ],
+              "result": "You took HIS wallet. A legend is born. Unhinged, but a legend."
+            },
+            {
+              "weight": 85,
+              "effects": [
+                { "kind": "stat", "stat": "health", "delta": -18 },
+                { "kind": "money", "delta": -600 }
+              ],
+              "result": "He had a buddy. You did not have a buddy. Hospital food is bland."
+            }
+          ]
         }
       ],
       "ui": { "x": 520, "y": 660 }
@@ -652,7 +1076,7 @@
     {
       "id": "illness",
       "title": "Mystery illness",
-      "description": "You've been feeling terrible for weeks.",
+      "description": "You've felt like a damp sock for weeks. Even your bones are tired.",
       "category": "health",
       "conditions": { "kind": "age", "min": 5 },
       "weight": 4,
@@ -671,7 +1095,7 @@
             { "kind": "money", "delta": -500 },
             { "kind": "stat", "stat": "health", "delta": 15 }
           ],
-          "result": "Treatment worked. You're on the mend."
+          "result": "Treatment worked. You're on the mend. WebMD said it was lupus, but no."
         },
         {
           "id": "tough_it_out",
@@ -680,12 +1104,34 @@
             {
               "weight": 60,
               "effects": [{ "kind": "stat", "stat": "health", "delta": -5 }],
-              "result": "It passed on its own. Eventually."
+              "result": "It passed on its own. Eventually. Stubbornness: 1, pathogens: 0."
             },
             {
               "weight": 40,
               "effects": [{ "kind": "stat", "stat": "health", "delta": -18 }],
-              "result": "It got much worse before it got better."
+              "result": "It got much worse before it got better. Your immune system sent a resignation letter."
+            }
+          ]
+        },
+        {
+          "id": "google_it",
+          "text": "Ask the internet instead",
+          "outcomes": [
+            {
+              "weight": 30,
+              "effects": [
+                { "kind": "stat", "stat": "health", "delta": 4 },
+                { "kind": "stat", "stat": "happiness", "delta": 3 }
+              ],
+              "result": "Turns out it's gas and a bad attitude. Free cure."
+            },
+            {
+              "weight": 70,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -8 },
+                { "kind": "stat", "stat": "health", "delta": -8 }
+              ],
+              "result": "Per the forums, it's either allergies or six weeks to live. You pick a funeral playlist."
             }
           ]
         }
@@ -695,7 +1141,7 @@
     {
       "id": "lottery",
       "title": "Lucky ticket",
-      "description": "A scratch-off ticket catches your eye at the corner store.",
+      "description": "A scratch-off ticket winks at you from behind the counter. Its name is 'Moolah Madness.'",
       "category": "luck",
       "conditions": {
         "kind": "all",
@@ -736,7 +1182,34 @@
         {
           "id": "pass",
           "text": "Walk past",
-          "result": "You saved your money."
+          "result": "You saved your money. The lottery is, statistically, a tax on hope."
+        },
+        {
+          "id": "buy_roll",
+          "text": "Buy the whole roll ($300)",
+          "conditions": { "kind": "money", "op": "gte", "value": 300 },
+          "outcomes": [
+            {
+              "weight": 6,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "lucky" }, "add": 14 }
+              ],
+              "effects": [
+                { "kind": "money", "delta": 50000 },
+                { "kind": "stat", "stat": "happiness", "delta": 25 }
+              ],
+              "result": "Ticket 47 of 100 hits for $50,000. Statistical? No. Glorious? Yes."
+            },
+            {
+              "weight": 94,
+              "effects": [
+                { "kind": "money", "delta": -300 },
+                { "kind": "stat", "stat": "happiness", "delta": -6 },
+                { "kind": "flag", "flag": "scratch_addict", "value": true }
+              ],
+              "result": "One hundred tickets, $12 back, and a silver-dust-covered thumbs-down from the cashier."
+            }
+          ]
         }
       ],
       "ui": { "x": 1040, "y": 220 }
@@ -744,7 +1217,7 @@
     {
       "id": "midlife_crisis",
       "title": "Midlife crisis",
-      "description": "You catch yourself staring at sports car listings at 2am.",
+      "description": "You catch yourself pricing sports cars at 2am. Your knees make a sound when you stand now.",
       "category": "life",
       "conditions": {
         "kind": "all",
@@ -765,7 +1238,7 @@
             { "kind": "money", "delta": -40000 },
             { "kind": "stat", "stat": "happiness", "delta": 20 }
           ],
-          "result": "Cherry red. Zero regrets. For now."
+          "result": "Cherry red. Zero regrets. The neighbors can hear your midlife crisis from three blocks away."
         },
         {
           "id": "meditate",
@@ -774,7 +1247,34 @@
             { "kind": "stat", "stat": "happiness", "delta": 8 },
             { "kind": "stat", "stat": "health", "delta": 3 }
           ],
-          "result": "Inner peace is cheaper than a convertible."
+          "result": "Inner peace is cheaper than a convertible. Marginally less fun."
+        },
+        {
+          "id": "join_band",
+          "text": "Dye your hair and join a band",
+          "outcomes": [
+            {
+              "weight": 40,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 15 }
+              ],
+              "effects": [
+                { "kind": "money", "delta": -500 },
+                { "kind": "stat", "stat": "happiness", "delta": 15 },
+                { "kind": "flag", "flag": "rockstar_phase", "value": true }
+              ],
+              "result": "Your band, 'Midlife Carcass,' plays to nine people. You feel 22 again."
+            },
+            {
+              "weight": 60,
+              "effects": [
+                { "kind": "money", "delta": -500 },
+                { "kind": "stat", "stat": "happiness", "delta": -6 },
+                { "kind": "flag", "flag": "band_drama", "value": true }
+              ],
+              "result": "The bassist slept with the drummer's partner. You quit before the first gig."
+            }
+          ]
         }
       ],
       "ui": { "x": 780, "y": 440 }
