@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { STAT_KEYS, type EventPack } from "./types";
+import { STAT_KEYS, type EventPack, type LoadedPack, type PackFile } from "./types";
+import { flattenPack } from "./packs";
 
 /**
  * Zod schema that mirrors the pack format. Validation is what keeps mod
@@ -32,8 +33,28 @@ const condition: z.ZodType<unknown> = z.lazy(() =>
       op: compareOp.optional(),
       value: z.number(),
     }),
+    z.object({
+      kind: z.literal("person"),
+      relation: z.array(relationKind).min(1).optional(),
+      minRel: z.number().min(-100).max(100).optional(),
+      maxRel: z.number().min(-100).max(100).optional(),
+    }),
+    z.object({ kind: z.literal("ailment"), ailment: id.optional() }),
   ]),
 );
+
+const relationKind = z.enum([
+  "mother",
+  "father",
+  "sibling",
+  "grandparent",
+  "friend",
+  "partner",
+  "spouse",
+  "child",
+  "coworker",
+  "ex",
+]);
 
 const weightModifier = z.object({
   when: condition,
@@ -51,6 +72,16 @@ const effect = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("collect"), flag: z.string().min(1).max(64) }),
   z.object({ kind: z.literal("loseitem"), item: id }),
   z.object({ kind: z.literal("die"), cause: z.string().min(1).max(200) }),
+  z.object({ kind: z.literal("ailment"), ailment: id }),
+  z.object({ kind: z.literal("cure"), ailment: id.optional() }),
+  z.object({ kind: z.literal("rel"), delta: z.number().min(-100).max(100) }),
+  z.object({
+    kind: z.literal("person"),
+    role: relationKind,
+    name: z.string().min(1).max(80).optional(),
+    rel: z.number().min(-100).max(100).optional(),
+  }),
+  z.object({ kind: z.literal("memory"), text: z.string().min(1).max(300) }),
 ]);
 
 const outcome = z.object({
@@ -84,6 +115,13 @@ export const simEventSchema = z.object({
   forced: z.boolean().optional(),
   repeatDecay: z.number().min(0).max(1).optional(),
   choices: z.array(choice).min(1).max(20),
+  subject: z
+    .object({
+      relation: z.array(relationKind).min(1).optional(),
+      minRel: z.number().min(-100).max(100).optional(),
+      maxRel: z.number().min(-100).max(100).optional(),
+    })
+    .optional(),
   ui: z.object({ x: z.number(), y: z.number() }).optional(),
 });
 
@@ -129,6 +167,68 @@ const job = z.object({
   hint: z.string().max(200).optional(),
 });
 
+const treatmentDef = z.object({
+  id,
+  label: z.string().min(1).max(120),
+  provider: z.enum(["gp", "therapist", "specialist", "surgeon", "er", "self"]),
+  cost: z.number().min(0).max(1e9),
+  cureChance: z.number().min(0).max(1),
+  relieveHealth: z.number().min(0).max(100).optional(),
+  reduceDrain: z.number().min(0).max(100).optional(),
+});
+
+const diseaseDef = z.object({
+  id,
+  name: z.string().min(1).max(120),
+  blurb: z.string().max(400).optional(),
+  kind: z.enum(["physical", "mental", "injury"]),
+  course: z.enum(["acute", "chronic", "progressive"]),
+  severity: z.number().int().min(1).max(3),
+  durationYears: z.tuple([z.number().int().min(0).max(100), z.number().int().min(0).max(100)]).optional(),
+  healthPerYear: z.number().min(-30).max(30).optional(),
+  happinessPerYear: z.number().min(-30).max(30).optional(),
+  escalatePerYear: z.number().min(0).max(20).optional(),
+  treatable: z.boolean().optional(),
+  treatments: z.array(treatmentDef).max(10).optional(),
+  lethalPerYear: z.number().min(0).max(0.5).optional(),
+  onsetWeight: z.number().min(0).max(1).optional(),
+  conditions: condition.optional(),
+});
+
+const packSection = z.object({
+  id,
+  name: z.string().min(1).max(120),
+  src: z.string().min(1).max(300).optional(),
+  events: z.array(simEventSchema).max(500).optional(),
+  ailments: z.array(diseaseDef).max(100).optional(),
+});
+
+const packFileSchema = z
+  .object({
+    id,
+    name: z.string().min(1).max(200),
+    version: z.string().min(1).max(40),
+    description: z.string().max(2000).optional(),
+    events: z.array(simEventSchema).max(500).optional(),
+    ailments: z.array(diseaseDef).max(100).optional(),
+    actions: z.array(gameAction).max(200).optional(),
+    items: z.array(shopItem).max(200).optional(),
+    jobs: z.array(job).max(200).optional(),
+    names: z
+      .object({
+        first: z.array(z.string().min(1).max(40)).max(500).optional(),
+        last: z.array(z.string().min(1).max(40)).max(500).optional(),
+      })
+      .optional(),
+    sections: z.array(packSection).max(50).optional(),
+  })
+  .refine(
+    (p) =>
+      (p.events?.length ?? 0) > 0 ||
+      (p.sections?.length ?? 0) > 0 ||
+      (p.actions?.length ?? 0) > 0,
+    { message: "pack needs at least one event, section or action" },
+  );
 export const eventPackSchema = z.object({
   id,
   name: z.string().min(1).max(200),
@@ -144,9 +244,16 @@ export type ValidationResult =
   | { ok: true; pack: EventPack }
   | { ok: false; errors: string[] };
 
-/** Parse and semantically validate an unknown blob as an event pack. */
-export function validatePack(data: unknown): ValidationResult {
-  const parsed = eventPackSchema.safeParse(data);
+export type PackValidationResult =
+  | { ok: true; loaded: LoadedPack }
+  | { ok: false; errors: string[] };
+
+/**
+ * Parse and semantically validate a raw pack file — flat (v1), nested
+ * (sections), or mixed. Returns the flattened pack plus the section map.
+ */
+export function validatePackFile(data: unknown): PackValidationResult {
+  const parsed = packFileSchema.safeParse(data);
   if (!parsed.success) {
     return {
       ok: false,
@@ -155,12 +262,37 @@ export function validatePack(data: unknown): ValidationResult {
       ),
     };
   }
-  const pack = parsed.data as EventPack;
-
-  // Semantic checks the schema can't express.
+  const file = parsed.data as PackFile;
   const errors: string[] = [];
+
+  const sectionIds = new Set<string>();
+  for (const s of file.sections ?? []) {
+    if (sectionIds.has(s.id)) errors.push(`duplicate section id "${s.id}"`);
+    sectionIds.add(s.id);
+    if (s.src && (s.events?.length || s.ailments?.length)) {
+      errors.push(`section "${s.id}": "src" cannot be combined with inline events/ailments`);
+    }
+    if (!s.src && !(s.events?.length || s.ailments?.length)) {
+      errors.push(`section "${s.id}" is empty`);
+    }
+  }
+
+  const flatEvents = [
+    ...(file.events ?? []),
+    ...(file.sections ?? []).flatMap((s) => s.events ?? []),
+  ];
+  const flatAilments = [
+    ...(file.ailments ?? []),
+    ...(file.sections ?? []).flatMap((s) => s.ailments ?? []),
+  ];
+  const ailmentIds = new Set<string>();
+  for (const d of flatAilments) {
+    if (ailmentIds.has(d.id)) errors.push(`duplicate ailment id "${d.id}"`);
+    ailmentIds.add(d.id);
+  }
+
   const ids = new Set<string>();
-  for (const ev of pack.events) {
+  for (const ev of flatEvents) {
     if (ids.has(ev.id)) errors.push(`duplicate event id "${ev.id}"`);
     ids.add(ev.id);
     const choiceIds = new Set<string>();
@@ -175,7 +307,7 @@ export function validatePack(data: unknown): ValidationResult {
   const checkGoto = (gotoId: string | undefined, where: string) => {
     if (gotoId && !ids.has(gotoId)) errors.push(`${where}: goto target "${gotoId}" does not exist`);
   };
-  for (const ev of pack.events) {
+  for (const ev of flatEvents) {
     for (const ch of ev.choices) {
       checkGoto(ch.goto, `event "${ev.id}" choice "${ch.id}"`);
       for (const o of ch.outcomes ?? []) {
@@ -184,7 +316,7 @@ export function validatePack(data: unknown): ValidationResult {
     }
   }
   // Actions/items/jobs share the pack's id namespace and need unique ids.
-  for (const list of [pack.actions ?? [], pack.items ?? [], pack.jobs ?? []]) {
+  for (const list of [file.actions ?? [], file.items ?? [], file.jobs ?? []]) {
     for (const entry of list) {
       if (ids.has(entry.id)) errors.push(`duplicate id "${entry.id}"`);
       ids.add(entry.id);
@@ -192,5 +324,14 @@ export function validatePack(data: unknown): ValidationResult {
       // into events defined by other packs, resolvable only at runtime.
     }
   }
-  return errors.length ? { ok: false, errors } : { ok: true, pack };
+  if (errors.length) return { ok: false, errors };
+  return { ok: true, loaded: flattenPack(file) };
+}
+
+/** Parse and semantically validate an unknown blob as an event pack. */
+export function validatePack(data: unknown): ValidationResult {
+  // Accept both the flat v1 shape and the nested PackFile shape.
+  const res = validatePackFile(data);
+  if (!res.ok) return res;
+  return { ok: true, pack: res.loaded.pack };
 }

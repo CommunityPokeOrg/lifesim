@@ -46,6 +46,18 @@ export function evalCondition(cond: Condition | undefined, c: Character): boolea
       return c.history[cond.event] === cond.choice;
     case "counter":
       return compare(Number(c.flags[cond.flag] ?? 0), cond.op ?? "gte", cond.value);
+    case "person":
+      return c.people.some((p) => {
+        if (!p.alive || p.gone) return false;
+        if (cond.relation && !cond.relation.includes(p.relation)) return false;
+        if (cond.minRel !== undefined && p.rel < cond.minRel) return false;
+        if (cond.maxRel !== undefined && p.rel > cond.maxRel) return false;
+        return true;
+      });
+    case "ailment":
+      return cond.ailment
+        ? c.ailments.some((a) => a.defId === cond.ailment)
+        : c.ailments.length > 0;
   }
 }
 
