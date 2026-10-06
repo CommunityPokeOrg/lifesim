@@ -1,0 +1,241 @@
+import { useCallback, useMemo, useRef, useState } from "react";
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  addEdge,
+  useEdgesState,
+  useNodesState,
+  type Connection,
+  type Edge,
+  type Node,
+} from "reactflow";
+import "reactflow/dist/style.css";
+import type { EventPack, SimEvent } from "../engine/types";
+import { validatePack } from "../engine/schema";
+import EventNode from "./EventNode";
+import EventInspector from "./EventInspector";
+import { downloadJson, nodesToPack, packToEdges, packToNodes, type EventNodeData } from "./packIo";
+
+const nodeTypes = { eventNode: EventNode };
+
+const EMPTY_PACK: EventPack = {
+  id: "my_pack",
+  name: "My Mod Pack",
+  version: "1.0.0",
+  events: [],
+};
+
+export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventPack) => void }) {
+  const [meta, setMeta] = useState<Omit<EventPack, "events">>(EMPTY_PACK);
+  const [nodes, setNodes, onNodesChange] = useNodesState<EventNodeData>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const eventIds = useMemo(() => nodes.map((n) => n.id), [nodes]);
+  const selected = nodes.find((n) => n.id === selectedId);
+
+  /** Mutating a node's event data then re-syncing derived edges. */
+  const mutateNode = useCallback(
+    (id: string, fn: (ev: SimEvent) => SimEvent) => {
+      setNodes((ns) => {
+        const next = ns.map((n) =>
+          n.id === id ? { ...n, data: { event: fn(n.data.event) } } : n,
+        );
+        setEdges(packToEdges(next));
+        return next;
+      });
+    },
+    [setNodes, setEdges],
+  );
+
+  const onConnect = useCallback(
+    (conn: Connection) => {
+      // An edge from a choice handle writes that choice's `goto`.
+      const choiceId = conn.sourceHandle?.startsWith("c:")
+        ? conn.sourceHandle.slice(2)
+        : null;
+      if (!conn.source || !conn.target) return;
+      if (choiceId) {
+        mutateNode(conn.source, (ev) => ({
+          ...ev,
+          choices: ev.choices.map((ch) =>
+            ch.id === choiceId ? { ...ch, goto: conn.target! } : ch,
+          ),
+        }));
+        return;
+      }
+      setEdges((es) => addEdge(conn, es));
+    },
+    [mutateNode, setEdges],
+  );
+
+  const onEdgesDelete = useCallback(
+    (deleted: Edge[]) => {
+      for (const e of deleted) {
+        const choiceId = e.sourceHandle?.startsWith("c:") ? e.sourceHandle.slice(2) : null;
+        if (!choiceId) continue;
+        mutateNode(e.source, (ev) => ({
+          ...ev,
+          choices: ev.choices.map((ch) => {
+            if (ch.id !== choiceId) return ch;
+            const nu = { ...ch };
+            if (nu.goto === e.target) delete nu.goto;
+            if (nu.outcomes) {
+              nu.outcomes = nu.outcomes.map((o) =>
+                o.goto === e.target ? { ...o, goto: undefined } : o,
+              );
+            }
+            return nu;
+          }),
+        }));
+      }
+    },
+    [mutateNode],
+  );
+
+  const addEvent = () => {
+    const id = `event_${nodes.length + 1}`;
+    const ev: SimEvent = {
+      id,
+      title: "New event",
+      description: "Describe what happens.",
+      weight: 10,
+      choices: [{ id: "ok", text: "OK", result: "Life goes on." }],
+    };
+    const node: Node<EventNodeData> = {
+      id,
+      type: "eventNode",
+      position: { x: 80 + nodes.length * 30, y: 80 + nodes.length * 30 },
+      data: { event: ev },
+    };
+    setNodes((ns) => [...ns, node]);
+    setSelectedId(id);
+  };
+
+  const importPack = async (file: File) => {
+    try {
+      const res = validatePack(JSON.parse(await file.text()));
+      if (!res.ok) {
+        setStatus({ ok: false, text: res.errors.join("\n") });
+        return;
+      }
+      setMeta({ id: res.pack.id, name: res.pack.name, version: res.pack.version, description: res.pack.description }); // eslint-disable-line
+      const ns = packToNodes(res.pack);
+      setNodes(ns);
+      setEdges(packToEdges(ns));
+      setSelectedId(null);
+      setStatus({ ok: true, text: `Imported "${res.pack.name}" (${res.pack.events.length} events).` });
+    } catch (e) {
+      setStatus({ ok: false, text: `Not valid JSON: ${(e as Error).message}` });
+    }
+  };
+
+  const buildPack = (): EventPack => nodesToPack(nodes, meta);
+
+  const exportPack = () => {
+    const pack = buildPack();
+    const res = validatePack(pack);
+    if (!res.ok) {
+      setStatus({ ok: false, text: res.errors.join("\n") });
+      return;
+    }
+    downloadJson(`${pack.id}.json`, pack);
+    setStatus({ ok: true, text: `Exported ${pack.id}.json` });
+  };
+
+  const validate = () => {
+    const res = validatePack(buildPack());
+    setStatus(res.ok ? { ok: true, text: "Pack is valid." } : { ok: false, text: res.errors.join("\n") });
+  };
+
+  const playtest = () => {
+    const res = validatePack(buildPack());
+    if (!res.ok) {
+      setStatus({ ok: false, text: res.errors.join("\n") });
+      return;
+    }
+    onPlaytest(res.pack);
+  };
+
+  return (
+    <div className="editor">
+      <div className="editor-canvas">
+        <div className="editor-toolbar">
+          <button className="btn" onClick={addEvent}>+ Event</button>
+          <button className="btn" onClick={() => fileRef.current?.click()}>Import JSON</button>
+          <button className="btn" onClick={exportPack}>Export JSON</button>
+          <button className="btn" onClick={validate}>Validate</button>
+          <button className="btn primary" onClick={playtest}>Playtest ▶</button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".json,application/json"
+            hidden
+            onChange={(e) => e.target.files?.[0] && importPack(e.target.files[0])}
+          />
+        </div>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onEdgesDelete={onEdgesDelete}
+          onNodeClick={(_, n) => setSelectedId(n.id)}
+          onPaneClick={() => setSelectedId(null)}
+          onNodeDragStop={(_, n) =>
+            mutateNode(n.id, (ev) => ({ ...ev, ui: { x: Math.round(n.position.x), y: Math.round(n.position.y) } }))
+          }
+          deleteKeyCode={["Backspace", "Delete"]}
+          fitView
+        >
+          <Background />
+          <Controls />
+          <MiniMap pannable zoomable />
+        </ReactFlow>
+      </div>
+      {selected ? (
+        <EventInspector
+          event={selected.data.event}
+          eventIds={eventIds}
+          onChange={(ev) => mutateNode(selected.id, () => ev)}
+          onDelete={() => {
+            setNodes((ns) => {
+              const next = ns.filter((n) => n.id !== selected.id);
+              setEdges(packToEdges(next));
+              return next;
+            });
+            setSelectedId(null);
+          }}
+        />
+      ) : (
+        <div className="inspector">
+          <h3>Pack</h3>
+          <div className="field"><label>id</label>
+            <input type="text" value={meta.id} onChange={(e) => setMeta({ ...meta, id: e.target.value })} /></div>
+          <div className="field"><label>name</label>
+            <input type="text" value={meta.name} onChange={(e) => setMeta({ ...meta, name: e.target.value })} /></div>
+          <div className="field"><label>version</label>
+            <input type="text" value={meta.version} onChange={(e) => setMeta({ ...meta, version: e.target.value })} /></div>
+          <div className="field"><label>description</label>
+            <textarea rows={3} value={meta.description ?? ""} onChange={(e) => setMeta({ ...meta, description: e.target.value })} /></div>
+          <p style={{ color: "var(--muted)", fontSize: 12 }}>
+            Click a node to edit it. Drag from a choice handle (right side) to
+            another node to create a <code>goto</code> chain. Select an edge and
+            press Delete to remove it.
+          </p>
+          {status && <div className={status.ok ? "ok" : "err"}>{status.text}</div>}
+        </div>
+      )}
+      {selected && status && (
+        <div style={{ position: "fixed", bottom: 10, right: 350, zIndex: 20, maxWidth: 400 }}>
+          <div className={status.ok ? "ok" : "err"}>{status.text}</div>
+        </div>
+      )}
+    </div>
+  );
+}
