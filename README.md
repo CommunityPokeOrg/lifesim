@@ -107,6 +107,45 @@ npm run preview    # serve the production build
 See `src/engine/types.ts` for the full type definitions and
 `src/engine/schema.ts` for the validation rules.
 
+## Triggering & testing events
+
+Each year the engine gathers every event whose `conditions` pass (and whose
+`once`/`cooldown`/`repeatDecay` bookkeeping allows it), then draws one by
+`weight` — with a "quiet year" dummy entry so some years have no event.
+`forced: true` events skip the draw and always queue while eligible. A choice
+outcome can `goto` another event id to chain it immediately (chain targets
+conventionally use `weight: 0` so they only ever appear via `goto`).
+
+Trigger-style examples:
+
+- **Age/stats/money**: `{ "kind": "age", "min": 18 }`,
+  `{ "kind": "money", "op": "gte", "value": 100000 }`
+- **Flags set by earlier events**: `{ "kind": "flag", "flag": "conspiracist", "equals": true }`
+  (the Total Chaos pack sets flags like `goose_enemy`, `internet_famous`,
+  `crypto_stake` to unlock follow-ups)
+- **Past choices**: `{ "kind": "chose", "event": "school_bully", "choice": "fight_back" }`
+- **Compound**: wrap any of the above in `all` / `any` / `not`.
+
+To force-test one event, edit the pack JSON: give the event `"forced": true`
+and a narrow window, e.g. `"conditions": { "kind": "age", "min": 20, "max": 20 }`
+— it then fires the year the character turns 20. For flag-gated events, also
+relax the flag condition (or chain it from an event you can reach). You can
+test in-game (Play tab → New life with a seed) or headlessly:
+
+```bash
+npx vitest run                 # engine + pack validation tests
+npx vite-node scripts/distribution-report.ts 5000   # firing stats over N lives
+```
+
+The Mod Editor's *Playtest* button also drops your current graph into the
+simulator as a temporary pack.
+
+Bundled packs live in `src/packs/` and are registered in `src/App.tsx`
+(`BUNDLED_PACKS`); each one gets a checkbox in the game's "Loaded packs"
+panel. The bundled **Total Chaos Pack** (`src/packs/chaos.json`) adds ~40
+absurd events — goose vendettas, viral fame, crypto prophets, haunted
+inheritances — on top of the core pack. Untick it for a calmer life.
+
 ## Project layout
 
 ```

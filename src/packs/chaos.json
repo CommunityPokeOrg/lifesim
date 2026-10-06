@@ -1,0 +1,1764 @@
+{
+  "id": "chaos",
+  "name": "Total Chaos Pack",
+  "version": "1.0.0",
+  "description": "A spicier pack: geese with vendettas, viral fame, haunted inheritances, and suspiciously persuasive strangers at bus stops.",
+  "events": [
+    {
+      "id": "chaos.goose_attack",
+      "title": "Goose encounter",
+      "description": "A goose blocks your path, wings spread, screaming at a frequency only you can hear.",
+      "category": "weird",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 5, "max": 70 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 7,
+      "cooldown": 4,
+      "repeatDecay": 0.5,
+      "choices": [
+        {
+          "id": "run",
+          "text": "Run. Just run.",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": -3 }],
+          "result": "You ran. The goose honked in triumph. Somewhere, it is still honking."
+        },
+        {
+          "id": "fight",
+          "text": "Establish dominance",
+          "outcomes": [
+            {
+              "weight": 35,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "athletic" }, "add": 35 },
+                { "when": { "kind": "trait", "trait": "hot-headed" }, "add": 10 }
+              ],
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 6 },
+                { "kind": "flag", "flag": "goose_enemy", "value": true }
+              ],
+              "result": "You won the duel. The goose retreated — but it made a call. You saw it make a call."
+            },
+            {
+              "weight": 65,
+              "effects": [
+                { "kind": "stat", "stat": "health", "delta": -6 },
+                { "kind": "flag", "flag": "goose_enemy", "value": true }
+              ],
+              "result": "The goose won decisively. You now have a mortal enemy with wings."
+            }
+          ]
+        },
+        {
+          "id": "bread",
+          "text": "Offer it bread",
+          "outcomes": [
+            {
+              "weight": 25,
+              "effects": [
+                { "kind": "flag", "flag": "goose_friend", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": 10 }
+              ],
+              "result": "The goose accepted your tribute. You have been adopted by a goose. This is legally binding now."
+            },
+            {
+              "weight": 75,
+              "effects": [{ "kind": "stat", "stat": "health", "delta": -4 }],
+              "result": "The goose took the bread AND your dignity. Classic goose."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 0, "y": 0 }
+    },
+    {
+      "id": "chaos.goose_revenge",
+      "title": "The goose remembers",
+      "description": "You hear honking behind you. It has found you. It has been training.",
+      "category": "weird",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "flag", "flag": "goose_enemy", "equals": true },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 8,
+      "cooldown": 3,
+      "repeatDecay": 0.5,
+      "choices": [
+        {
+          "id": "flee",
+          "text": "Flee for your life",
+          "effects": [{ "kind": "stat", "stat": "health", "delta": -3 }],
+          "result": "You escaped, barely. The goose let you go. It wants you to live with the fear."
+        },
+        {
+          "id": "make_peace",
+          "text": "Offer a formal apology",
+          "outcomes": [
+            {
+              "weight": 50,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 30 }
+              ],
+              "effects": [
+                { "kind": "unflag", "flag": "goose_enemy" },
+                { "kind": "stat", "stat": "happiness", "delta": 8 }
+              ],
+              "result": "The goose accepted your apology with a single solemn honk. Peace, at last."
+            },
+            {
+              "weight": 50,
+              "effects": [{ "kind": "stat", "stat": "health", "delta": -5 }],
+              "result": "Your apology was deemed insufficient. The goose's lawyers will be in touch."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 280, "y": 0 }
+    },
+    {
+      "id": "chaos.goose_gift",
+      "title": "A gift from the goose",
+      "description": "Your goose arrives with something shiny in its beak. It drops it at your feet and waits.",
+      "category": "luck",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "flag", "flag": "goose_friend", "equals": true },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 6,
+      "cooldown": 5,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "accept",
+          "text": "Accept the gift",
+          "outcomes": [
+            {
+              "weight": 30,
+              "effects": [{ "kind": "money", "delta": 120 }],
+              "result": "It's a gold locket. The goose watches you sell it for $120. No judgment."
+            },
+            {
+              "weight": 70,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 5 }],
+              "result": "It's a bottle cap. It is now your most treasured possession."
+            }
+          ]
+        },
+        {
+          "id": "decline",
+          "text": "Decline politely",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": -2 }],
+          "result": "The goose seemed hurt. You will think about this at 3am."
+        }
+      ],
+      "ui": { "x": 560, "y": 0 }
+    },
+    {
+      "id": "chaos.cafeteria_mystery",
+      "title": "Mystery meat",
+      "description": "The cafeteria is serving something the lunch lady calls 'the special'. It is grey. It is moving, slightly.",
+      "category": "school",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 7, "max": 17 },
+          { "kind": "flag", "flag": "in_school", "equals": true }
+        ]
+      },
+      "weight": 9,
+      "cooldown": 3,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "eat",
+          "text": "Eat the special",
+          "outcomes": [
+            {
+              "weight": 55,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 3 }],
+              "result": "Surprisingly decent? You went back for seconds. The lunch lady respects you now."
+            },
+            {
+              "weight": 15,
+              "effects": [
+                { "kind": "trait", "trait": "iron_stomach", "action": "add" },
+                { "kind": "stat", "stat": "health", "delta": 2 }
+              ],
+              "result": "You ate the special and felt nothing. Nothing can hurt you ever again."
+            },
+            {
+              "weight": 30,
+              "effects": [{ "kind": "stat", "stat": "health", "delta": -6 }],
+              "result": "Regret, served on a beige tray. You spent lunch in the bathroom reconsidering everything."
+            }
+          ]
+        },
+        {
+          "id": "trade",
+          "text": "Trade it for a pudding cup",
+          "effects": [{ "kind": "stat", "stat": "smarts", "delta": 2 }],
+          "result": "You flipped the special for two pudding cups and a juice box. Wall Street is calling."
+        }
+      ],
+      "ui": { "x": 840, "y": 0 }
+    },
+    {
+      "id": "chaos.food_fight",
+      "title": "Cafeteria food fight",
+      "description": "Someone threw a tater tot. It has escalated. The principal is on the table. There are no rules now.",
+      "category": "school",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 8, "max": 17 },
+          { "kind": "flag", "flag": "in_school", "equals": true }
+        ]
+      },
+      "weight": 7,
+      "cooldown": 3,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "join",
+          "text": "Join the glorious chaos",
+          "outcomes": [
+            {
+              "weight": 40,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 9 }],
+              "result": "You landed a mashed-potato spiral from across the room. Legend status achieved.",
+              "goto": "chaos.detention"
+            },
+            {
+              "weight": 60,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 5 }],
+              "result": "You threw tater tots with courage and distinction. Nobody will forget this. Unfortunately, that includes the principal."
+            }
+          ]
+        },
+        {
+          "id": "hide",
+          "text": "Hide under the table",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": -2 }],
+          "result": "You survived, but at what cost? Everyone saw you hiding with the lunch monitors."
+        }
+      ],
+      "ui": { "x": 1120, "y": 0 }
+    },
+    {
+      "id": "chaos.detention",
+      "title": "Detention",
+      "description": "The principal's office. Fluorescent lights. A worksheet titled 'Reflection'. The door is... slightly ajar.",
+      "category": "school",
+      "weight": 0,
+      "choices": [
+        {
+          "id": "serve",
+          "text": "Serve your time",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": -3 }],
+          "result": "You wrote 'I will not weaponize side dishes' 100 times. Worth it."
+        },
+        {
+          "id": "escape",
+          "text": "Attempt a daring escape",
+          "outcomes": [
+            {
+              "weight": 35,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "athletic" }, "add": 25 }
+              ],
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 10 }],
+              "result": "You went out the window, commando-rolled into the hedges, and walked home a free child."
+            },
+            {
+              "weight": 65,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -6 }],
+              "result": "You got stuck in the window frame for 40 minutes. The custodian took a photo."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 1400, "y": 0 }
+    },
+    {
+      "id": "chaos.substitute_teacher",
+      "title": "Substitute teacher",
+      "description": "The substitute has given up by 9:15am. She's wheeling in the big TV cart. It's going to be that kind of day.",
+      "category": "school",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 6, "max": 17 },
+          { "kind": "flag", "flag": "in_school", "equals": true }
+        ]
+      },
+      "weight": 8,
+      "cooldown": 3,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "enjoy",
+          "text": "Enjoy the movie",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 6 }],
+          "result": "You watched a documentary about volcanoes twice. A perfect day."
+        },
+        {
+          "id": "study_anyway",
+          "text": "Study in the back anyway",
+          "conditions": { "kind": "trait", "trait": "bookish" },
+          "effects": [
+            { "kind": "stat", "stat": "smarts", "delta": 4 },
+            { "kind": "stat", "stat": "happiness", "delta": -2 }
+          ],
+          "result": "You did math while everyone else watched volcanoes. Your small act of rebellion."
+        }
+      ],
+      "ui": { "x": 1680, "y": 0 }
+    },
+    {
+      "id": "chaos.exam_panic",
+      "title": "The exam dream",
+      "description": "You wake at 4am, certain you have an exam today. You check the calendar. You do not. Your body refuses to believe this.",
+      "category": "school",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 12, "max": 24 },
+          {
+            "kind": "any",
+            "conditions": [
+              { "kind": "flag", "flag": "in_school", "equals": true },
+              { "kind": "flag", "flag": "in_college", "equals": true }
+            ]
+          }
+        ]
+      },
+      "weight": 8,
+      "cooldown": 4,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "study",
+          "text": "Panic-study anyway",
+          "effects": [
+            { "kind": "stat", "stat": "smarts", "delta": 4 },
+            { "kind": "stat", "stat": "health", "delta": -2 }
+          ],
+          "result": "You studied for a fake exam. Somewhere a parallel-universe you just passed it."
+        },
+        {
+          "id": "sleep",
+          "text": "Go back to sleep",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 4 }],
+          "result": "You fell back asleep and dreamt you were a spoon. Better than the exam dream."
+        }
+      ],
+      "ui": { "x": 1960, "y": 0 }
+    },
+    {
+      "id": "chaos.pet_rock",
+      "title": "The pet rock",
+      "description": "A kid at the swap meet is selling pet rocks. This one has a face painted on it. It is looking at you.",
+      "category": "life",
+      "conditions": { "kind": "age", "min": 6, "max": 13 },
+      "weight": 8,
+      "once": true,
+      "choices": [
+        {
+          "id": "adopt",
+          "text": "Adopt it ($5)",
+          "effects": [
+            { "kind": "money", "delta": -5 },
+            { "kind": "flag", "flag": "pet_rock", "value": true },
+            { "kind": "stat", "stat": "happiness", "delta": 8 }
+          ],
+          "result": "You named it Sebastian. Sebastian never sheds, never barks, never leaves. Sebastian is forever."
+        },
+        {
+          "id": "pass",
+          "text": "Rocks aren't pets",
+          "effects": [{ "kind": "stat", "stat": "smarts", "delta": 2 }],
+          "result": "You declined. The rock watched you leave. You will wonder about this."
+        }
+      ],
+      "ui": { "x": 0, "y": 240 }
+    },
+    {
+      "id": "chaos.pet_rock_graduation",
+      "title": "Sebastian's graduation",
+      "description": "You find Sebastian the pet rock at the back of a drawer. He has been with you through everything. He still has the face.",
+      "category": "life",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "flag", "flag": "pet_rock", "equals": true },
+          { "kind": "age", "min": 18 }
+        ]
+      },
+      "weight": 6,
+      "once": true,
+      "choices": [
+        {
+          "id": "keep",
+          "text": "Keep Sebastian forever",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 10 }],
+          "result": "Sebastian sits on your desk at work now. Coworkers ask questions. You answer none of them."
+        },
+        {
+          "id": "release",
+          "text": "Return him to the wild",
+          "effects": [
+            { "kind": "unflag", "flag": "pet_rock" },
+            { "kind": "stat", "stat": "happiness", "delta": -4 },
+            { "kind": "stat", "stat": "smarts", "delta": 3 }
+          ],
+          "result": "You placed Sebastian in a nice garden. Circle of life. You cried anyway."
+        }
+      ],
+      "ui": { "x": 280, "y": 240 }
+    },
+    {
+      "id": "chaos.mall_phase",
+      "title": "Identity shopping",
+      "description": "The mall demands you pick a personality. Three kiosks are eyeing you: Hot Topic, a skateboard shop, and the debate club recruitment table.",
+      "category": "school",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 13, "max": 17 },
+          { "kind": "flag", "flag": "in_school", "equals": true }
+        ]
+      },
+      "weight": 10,
+      "once": true,
+      "choices": [
+        {
+          "id": "goth",
+          "text": "Go full goth",
+          "effects": [
+            { "kind": "flag", "flag": "goth_phase", "value": true },
+            { "kind": "stat", "stat": "happiness", "delta": 7 }
+          ],
+          "result": "Black eyeliner, black boots, black soul (affectionate). Your mom pretends not to notice."
+        },
+        {
+          "id": "skater",
+          "text": "Buy the skateboard",
+          "effects": [
+            { "kind": "flag", "flag": "skater_phase", "value": true },
+            { "kind": "stat", "stat": "health", "delta": -3 },
+            { "kind": "stat", "stat": "happiness", "delta": 6 }
+          ],
+          "result": "You fell off the skateboard in the parking lot. Cool points: acquired anyway."
+        },
+        {
+          "id": "debate",
+          "text": "Join the debate kids",
+          "effects": [{ "kind": "stat", "stat": "smarts", "delta": 7 }],
+          "result": "You learned to argue both sides of any issue. Your family now lives in fear of 'actually'."
+        }
+      ],
+      "ui": { "x": 560, "y": 240 }
+    },
+    {
+      "id": "chaos.school_talent",
+      "title": "Talent show",
+      "description": "The annual talent show needs one more act. Your name was nominated. You did not nominate yourself.",
+      "category": "school",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 10, "max": 17 },
+          { "kind": "flag", "flag": "in_school", "equals": true }
+        ]
+      },
+      "weight": 6,
+      "cooldown": 3,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "perform",
+          "text": "Do the recorder solo",
+          "outcomes": [
+            {
+              "weight": 40,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 25 },
+                { "when": { "kind": "stat", "stat": "looks", "op": "gte", "value": 65 }, "add": 15 }
+              ],
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 10 }],
+              "result": "Your rendition of 'My Heart Will Go On' brought the gymnasium to its feet. A scout was present (allegedly)."
+            },
+            {
+              "weight": 60,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -8 }],
+              "result": "The recorder betrayed you on the high note. The video is already on three phones."
+            }
+          ]
+        },
+        {
+          "id": "decline",
+          "text": "Fake a sudden illness",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": -1 }],
+          "result": "You coughed theatrically and were excused. The recorder remains unplayed. History is safe."
+        }
+      ],
+      "ui": { "x": 840, "y": 240 }
+    },
+    {
+      "id": "chaos.locker_portal",
+      "title": "The forbidden locker",
+      "description": "Locker 237 was supposed to be sealed in 1987. It's open. Inside: a faint humming sound and what appears to be a study hall that never ends.",
+      "category": "weird",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 8, "max": 17 },
+          { "kind": "flag", "flag": "in_school", "equals": true }
+        ]
+      },
+      "weight": 4,
+      "once": true,
+      "choices": [
+        {
+          "id": "enter",
+          "text": "Step inside",
+          "outcomes": [
+            {
+              "weight": 50,
+              "effects": [{ "kind": "stat", "stat": "smarts", "delta": 8 }],
+              "result": "You spent what felt like a semester in there and emerged knowing the quadratic formula in your bones. Also, it was Friday the whole time."
+            },
+            {
+              "weight": 50,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -4 }],
+              "result": "You saw a vision of every future report card. You closed the locker and never spoke of it."
+            }
+          ]
+        },
+        {
+          "id": "close",
+          "text": "Close it and walk away",
+          "effects": [{ "kind": "stat", "stat": "smarts", "delta": 1 }],
+          "result": "You shut Locker 237 forever. Probably for the best. Probably."
+        }
+      ],
+      "ui": { "x": 1120, "y": 240 }
+    },
+    {
+      "id": "chaos.viral_video",
+      "title": "You went viral",
+      "description": "Someone filmed you falling directly into a fountain, standing up, and bowing. 4.2 million views. The internet has decided you are 'Fountain Guy/Gal'.",
+      "category": "fame",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 13, "max": 60 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 10,
+      "once": true,
+      "choices": [
+        {
+          "id": "lean_in",
+          "text": "Lean into the fame",
+          "effects": [
+            { "kind": "flag", "flag": "internet_famous", "value": true },
+            { "kind": "stat", "stat": "happiness", "delta": 10 }
+          ],
+          "result": "You made a merch store within 48 hours. Fountain Guy/Gal is a brand now.",
+          "goto": "chaos.sponsor_offer"
+        },
+        {
+          "id": "hide",
+          "text": "Delete everything and move on",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": -3 }],
+          "result": "You scrubbed your accounts. The internet moved on within a week, as it does."
+        }
+      ],
+      "ui": { "x": 1400, "y": 240 }
+    },
+    {
+      "id": "chaos.sponsor_offer",
+      "title": "A brand reaches out",
+      "description": "An energy drink called 'MAXIMUM CURRENT' wants to sponsor you. The contract is 40 pages long and glows faintly.",
+      "category": "fame",
+      "weight": 0,
+      "choices": [
+        {
+          "id": "sign",
+          "text": "Sign the deal",
+          "outcomes": [
+            {
+              "weight": 70,
+              "effects": [
+                { "kind": "money", "delta": 8000 },
+                { "kind": "stat", "stat": "health", "delta": -3 }
+              ],
+              "result": "You now drink MAXIMUM CURRENT on camera twice a week. Your teeth hum. You made $8,000."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                { "kind": "money", "delta": 8000 },
+                { "kind": "unflag", "flag": "internet_famous" },
+                { "kind": "stat", "stat": "happiness", "delta": -8 }
+              ],
+              "result": "The energy drink was discontinued after 'the incident'. Your sponsorship, and your fame, evaporated."
+            }
+          ]
+        },
+        {
+          "id": "decline",
+          "text": "Decline politely",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 2 }],
+          "result": "You declined. MAXIMUM CURRENT sponsored a guy who juggles chainsaws instead. Fair enough."
+        }
+      ],
+      "ui": { "x": 1680, "y": 240 }
+    },
+    {
+      "id": "chaos.fame_fades",
+      "title": "The algorithm turns",
+      "description": "Your views are down 80%. The comments have shifted from adoration to 'anyone else forget this person existed?'",
+      "category": "fame",
+      "conditions": { "kind": "flag", "flag": "internet_famous", "equals": true },
+      "weight": 12,
+      "cooldown": 2,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "double_down",
+          "text": "Post something outrageous",
+          "outcomes": [
+            {
+              "weight": 45,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 20 }
+              ],
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 8 }],
+              "result": "Your comeback video — you, a fountain, a choreographed routine — hit 10 million views. Redemption arc complete."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                { "kind": "unflag", "flag": "internet_famous" },
+                { "kind": "stat", "stat": "happiness", "delta": -10 }
+              ],
+              "result": "The stunt flopped so hard it became a case study. You are now famous in marketing textbooks, which is worse."
+            }
+          ]
+        },
+        {
+          "id": "retire",
+          "text": "Retire from the spotlight",
+          "effects": [
+            { "kind": "unflag", "flag": "internet_famous" },
+            { "kind": "stat", "stat": "happiness", "delta": 5 }
+          ],
+          "result": "You posted a graceful farewell. Three people cried. You were one of them."
+        }
+      ],
+      "ui": { "x": 1960, "y": 240 }
+    },
+    {
+      "id": "chaos.influencer_feud",
+      "title": "Influencer beef",
+      "description": "A rival content creator named Chad Thunder has released a 14-minute video dissecting your fountain fall frame by frame. It's oddly respectful. It's war.",
+      "category": "fame",
+      "conditions": { "kind": "flag", "flag": "internet_famous", "equals": true },
+      "weight": 6,
+      "cooldown": 3,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "respond",
+          "text": "Drop a response video",
+          "outcomes": [
+            {
+              "weight": 50,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 25 },
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 60 }, "add": 15 }
+              ],
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 12 },
+                { "kind": "money", "delta": 3000 }
+              ],
+              "result": "Your response was surgical. Chad Thunder now follows you. Brands threw $3,000 at the drama."
+            },
+            {
+              "weight": 50,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -9 }],
+              "result": "You got ratio'd so badly that three reply guys formed a book club about it."
+            }
+          ]
+        },
+        {
+          "id": "ignore",
+          "text": "Take the high road",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 3 }],
+          "result": "You ignored it. Chad Thunder declared victory over no one in particular."
+        }
+      ],
+      "ui": { "x": 0, "y": 480 }
+    },
+    {
+      "id": "chaos.garage_band",
+      "title": "The garage band",
+      "description": "Two acquaintances and a guy named Soup want to start a band. They need a bassist. You do not play bass. Soup says 'it's basically a big guitar'.",
+      "category": "life",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 13, "max": 28 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 8,
+      "once": true,
+      "choices": [
+        {
+          "id": "commit",
+          "text": "Buy a bass and commit",
+          "effects": [
+            { "kind": "money", "delta": -300 },
+            { "kind": "flag", "flag": "in_band", "value": true },
+            { "kind": "stat", "stat": "happiness", "delta": 8 }
+          ],
+          "result": "You're the bassist for 'Permanent Wednesday'. Practice is Thursdays and whenever Soup's mom is out.",
+          "goto": "chaos.battle_of_bands"
+        },
+        {
+          "id": "phase",
+          "text": "Suggest it's just a phase",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 1 }],
+          "result": "The band broke up over a disagreement about the name before you even joined. Bullet dodged."
+        }
+      ],
+      "ui": { "x": 280, "y": 480 }
+    },
+    {
+      "id": "chaos.battle_of_bands",
+      "title": "Battle of the Bands",
+      "description": "Permanent Wednesday made the finals of the regional Battle of the Bands. The competition: four bands, one of which is literally a police cover band.",
+      "category": "life",
+      "weight": 0,
+      "choices": [
+        {
+          "id": "perform",
+          "text": "Give it everything",
+          "outcomes": [
+            {
+              "weight": 35,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 20 }
+              ],
+              "effects": [
+                { "kind": "money", "delta": 2000 },
+                { "kind": "stat", "stat": "happiness", "delta": 15 },
+                { "kind": "flag", "flag": "band_famous", "value": true }
+              ],
+              "result": "Permanent Wednesday WON. You beat a police cover band in front of their own families. Prize: $2,000 and a trophy shaped like a guitar."
+            },
+            {
+              "weight": 65,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -5 }],
+              "result": "Soup broke a string, the drummer fell off the stool, and the police cover band played 'Bad Boys'. You placed fourth. There were four bands."
+            }
+          ]
+        },
+        {
+          "id": "sabotage",
+          "text": "Sabotage the police cover band",
+          "outcomes": [
+            {
+              "weight": 40,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "lucky" }, "add": 20 }
+              ],
+              "effects": [
+                { "kind": "money", "delta": 2000 },
+                { "kind": "stat", "stat": "happiness", "delta": 10 },
+                { "kind": "flag", "flag": "band_famous", "value": true }
+              ],
+              "result": "Their drum kit mysteriously lost a kick pedal, they played 22 minutes of rimshots, and Permanent Wednesday took the trophy. Nobody can prove anything."
+            },
+            {
+              "weight": 60,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -8 },
+                { "kind": "unflag", "flag": "in_band" }
+              ],
+              "result": "You were caught loosening the kick pedal by an actual police officer who was IN the police cover band. The band kicked you out via unanimous vote."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 560, "y": 480 }
+    },
+    {
+      "id": "chaos.dating_app",
+      "title": "A peculiar match",
+      "description": "You've matched with someone whose profile is entirely pictures of lasagna. They message: 'I also enjoy lasagna.' This is going great.",
+      "category": "relationships",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "partner", "equals": true } },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 8,
+      "cooldown": 2,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "date",
+          "text": "Meet them for lasagna",
+          "outcomes": [
+            {
+              "weight": 30,
+              "effects": [
+                { "kind": "flag", "flag": "partner", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": 14 }
+              ],
+              "result": "Turns out you're both delightful. You shared lasagna and life stories. You're together now — the lasagna posts were real."
+            },
+            {
+              "weight": 45,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -5 }],
+              "result": "They brought their own lasagna to the restaurant and critiqued the chef's. There will not be a second date."
+            },
+            {
+              "weight": 25,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 4 },
+                { "kind": "trait", "trait": "charming", "action": "add" }
+              ],
+              "result": "No romantic spark, but they're now your lasagna dealer. An excellent trade."
+            }
+          ]
+        },
+        {
+          "id": "unmatch",
+          "text": "Unmatch",
+          "result": "You unmatched. Somewhere, a lasagna-themed profile wonders what went wrong."
+        }
+      ],
+      "ui": { "x": 840, "y": 480 }
+    },
+    {
+      "id": "chaos.wedding_crash",
+      "title": "Uninvited",
+      "description": "A wedding is happening at the venue next door. You can smell the catered food from here. The guests all assume you're with the other side.",
+      "category": "life",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 4,
+      "cooldown": 5,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "crash",
+          "text": "Crash it for the shrimp",
+          "outcomes": [
+            {
+              "weight": 40,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 9 }],
+              "result": "You ate 40 shrimp, gave a toast as 'cousin Dave', and slow-clapped at all the right moments. Flawless."
+            },
+            {
+              "weight": 25,
+              "effects": [
+                { "kind": "flag", "flag": "partner", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": 12 }
+              ],
+              "result": "You met someone at the singles table who was ALSO crashing the wedding. A love story for the ages."
+            },
+            {
+              "weight": 35,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -7 }],
+              "result": "The maid of honor ran the seating chart like a forensic accountant. You were escorted out mid-shrimp."
+            }
+          ]
+        },
+        {
+          "id": "stay_home",
+          "text": "Stay home and make toast",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 1 }],
+          "result": "You made toast. It was fine. The shrimp would have been better."
+        }
+      ],
+      "ui": { "x": 1120, "y": 480 }
+    },
+    {
+      "id": "chaos.found_wallet",
+      "title": "The wallet",
+      "description": "A fat wallet on the sidewalk. $340 in cash, an ID, and a photo of a small dog wearing sunglasses.",
+      "category": "life",
+      "conditions": { "kind": "age", "min": 8 },
+      "weight": 7,
+      "cooldown": 4,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "return",
+          "text": "Track down the owner",
+          "outcomes": [
+            {
+              "weight": 50,
+              "effects": [
+                { "kind": "flag", "flag": "good_karma", "value": true },
+                { "kind": "money", "delta": 100 },
+                { "kind": "stat", "stat": "happiness", "delta": 8 }
+              ],
+              "result": "The owner gave you $100 and the dog's business card. The dog is a regional influencer."
+            },
+            {
+              "weight": 50,
+              "effects": [
+                { "kind": "flag", "flag": "good_karma", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": 6 }
+              ],
+              "result": "The owner cried happy tears. The dog in the photo nodded approvingly (in the photo). Karma filed."
+            }
+          ]
+        },
+        {
+          "id": "keep",
+          "text": "Keep it",
+          "effects": [
+            { "kind": "money", "delta": 340 },
+            { "kind": "flag", "flag": "bad_karma", "value": true },
+            { "kind": "stat", "stat": "happiness", "delta": -4 }
+          ],
+          "result": "You pocketed $340. You threw the wallet in a mailbox like a coward-hero. It doesn't sit right."
+        }
+      ],
+      "ui": { "x": 1400, "y": 480 }
+    },
+    {
+      "id": "chaos.crypto_tip",
+      "title": "The bus stop prophet",
+      "description": "A man at the bus stop, wearing three watches, leans in: 'ZorpCoin. It's going to the moon. I have charts.' He does not show you the charts.",
+      "category": "luck",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 16 },
+          { "kind": "money", "op": "gte", "value": 200 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "crypto_stake", "equals": true } },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 6,
+      "cooldown": 3,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "invest",
+          "text": "Invest $500",
+          "effects": [
+            { "kind": "money", "delta": -500 },
+            { "kind": "flag", "flag": "crypto_stake", "value": true }
+          ],
+          "result": "You bought 4 million ZorpCoin for $500. The man's three watches all said different times. Ominous or auspicious."
+        },
+        {
+          "id": "yolo",
+          "text": "YOLO — put in $5,000",
+          "conditions": { "kind": "money", "op": "gte", "value": 5000 },
+          "effects": [
+            { "kind": "money", "delta": -5000 },
+            { "kind": "flag", "flag": "crypto_stake", "value": true },
+            { "kind": "flag", "flag": "crypto_yolo", "value": true }
+          ],
+          "result": "You bought 40 million ZorpCoin. The man whispered 'brave' and boarded a bus going the wrong direction."
+        },
+        {
+          "id": "decline",
+          "text": "Politely decline",
+          "effects": [{ "kind": "stat", "stat": "smarts", "delta": 2 }],
+          "result": "You declined. He nodded sagely, as if your refusal was also foretold."
+        }
+      ],
+      "ui": { "x": 1680, "y": 480 }
+    },
+    {
+      "id": "chaos.crypto_check",
+      "title": "ZorpCoin portfolio check",
+      "description": "You open the exchange app with the physical tension of a diffusing a bomb. The chart looks like a cardiogram designed by a raccoon.",
+      "category": "luck",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "flag", "flag": "crypto_stake", "equals": true },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 15,
+      "cooldown": 1,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "sell",
+          "text": "Sell it all",
+          "outcomes": [
+            {
+              "weight": 8,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "lucky" }, "add": 12 },
+                { "when": { "kind": "flag", "flag": "crypto_yolo", "equals": true }, "multiply": 2 }
+              ],
+              "effects": [
+                { "kind": "money", "delta": 40000 },
+                { "kind": "unflag", "flag": "crypto_stake" },
+                { "kind": "unflag", "flag": "crypto_yolo" },
+                { "kind": "stat", "stat": "happiness", "delta": 20 }
+              ],
+              "result": "YOU SOLD AT THE TOP. $40,000. The three-watches man was right about one thing, at least."
+            },
+            {
+              "weight": 40,
+              "effects": [
+                { "kind": "money", "delta": 800 },
+                { "kind": "unflag", "flag": "crypto_stake" },
+                { "kind": "unflag", "flag": "crypto_yolo" }
+              ],
+              "result": "You cashed out $800. A small miracle in this economy of cartoon coins."
+            },
+            {
+              "weight": 52,
+              "effects": [
+                { "kind": "unflag", "flag": "crypto_stake" },
+                { "kind": "unflag", "flag": "crypto_yolo" },
+                { "kind": "stat", "stat": "happiness", "delta": -12 }
+              ],
+              "result": "ZorpCoin is now worth exactly $0.03 total. You sold it to pay the app's withdrawal fee."
+            }
+          ]
+        },
+        {
+          "id": "hodl",
+          "text": "HODL like a champion",
+          "effects": [{ "kind": "stat", "stat": "health", "delta": -2 }],
+          "result": "You held. Your heart rate is now pegged to a coin named after a frog."
+        }
+      ],
+      "ui": { "x": 1960, "y": 480 }
+    },
+    {
+      "id": "chaos.office_printer",
+      "title": "The printer again",
+      "description": "The office printer is jammed. The error message reads 'PC LOAD LETTER'. Nobody knows what this means. It has never meant anything.",
+      "category": "jobs",
+      "conditions": { "kind": "flag", "flag": "employed", "equals": true },
+      "weight": 7,
+      "cooldown": 3,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "hit",
+          "text": "Percussive maintenance",
+          "outcomes": [
+            {
+              "weight": 45,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 8 }],
+              "result": "You struck the printer with the flat of your palm and it whirred back to life out of fear. Coworkers applauded."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -4 },
+                { "kind": "flag", "flag": "printer_rival", "value": true }
+              ],
+              "result": "The printer spat a crumpled page at your feet like a glove thrown before a duel. This is personal now."
+            }
+          ]
+        },
+        {
+          "id": "call_it",
+          "text": "Submit an IT ticket",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": -2 }],
+          "result": "The ticket was auto-closed with 'have you tried turning it off and on'. You had. IT knows. IT always knows."
+        }
+      ],
+      "ui": { "x": 0, "y": 720 }
+    },
+    {
+      "id": "chaos.printer_revenge",
+      "title": "The printer strikes back",
+      "description": "During the all-hands meeting, the printer begins printing your browser history. Slide 4 of the presentation is just a search for 'can pigeons remember faces'.",
+      "category": "jobs",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "flag", "flag": "printer_rival", "equals": true },
+          { "kind": "flag", "flag": "employed", "equals": true }
+        ]
+      },
+      "weight": 5,
+      "cooldown": 2,
+      "choices": [
+        {
+          "id": "own_it",
+          "text": "Stand up and take the blame like a legend",
+          "outcomes": [
+            {
+              "weight": 50,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 25 }
+              ],
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 10 },
+                { "kind": "unflag", "flag": "printer_rival" }
+              ],
+              "result": "You announced 'yes, I DID research whether pigeons hold grudges, and they DO'. The CEO found it hilarious. The printer has made peace."
+            },
+            {
+              "weight": 50,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -8 },
+                { "kind": "unflag", "flag": "printer_rival" }
+              ],
+              "result": "Silence. A cough. Someone wrote 'pigeon truther' on your desk nameplate. The printer's vendetta is complete; it is at peace."
+            }
+          ]
+        },
+        {
+          "id": "unplug",
+          "text": "Rip the power cord out",
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": -3 },
+            { "kind": "unflag", "flag": "printer_rival" }
+          ],
+          "result": "You unplugged it mid-sentence. The last page to emerge was half a search for 'pigeon legal rights'. Everyone saw enough. The printer is defeated but so are you."
+        }
+      ],
+      "ui": { "x": 280, "y": 720 }
+    },
+    {
+      "id": "chaos.soup_heist",
+      "title": "The great soup heist",
+      "description": "Your labeled minestrone is missing from the break room fridge. Security footage exists. HR has been 'made aware'. A reckoning is at hand.",
+      "category": "jobs",
+      "conditions": { "kind": "flag", "flag": "employed", "equals": true },
+      "weight": 4,
+      "cooldown": 4,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "investigate",
+          "text": "Launch a full investigation",
+          "effects": [
+            { "kind": "stat", "stat": "smarts", "delta": 5 },
+            { "kind": "stat", "stat": "happiness", "delta": -3 }
+          ],
+          "result": "You built a corkboard with red string. The culprit: the new intern, who 'thought labels were decorative'. Justice was tepid."
+        },
+        {
+          "id": "escalate",
+          "text": "Go to HR",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": -4 }],
+          "result": "HR mediated a 'soup circle' reconciliation session. The intern cried. You got a voucher for one (1) soup."
+        },
+        {
+          "id": "let_go",
+          "text": "Let it go",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 3 }],
+          "result": "You released the minestrone into the universe. Inner peace tastes like chicken broth."
+        }
+      ],
+      "ui": { "x": 560, "y": 720 }
+    },
+    {
+      "id": "chaos.jury_duty",
+      "title": "Jury duty",
+      "description": "You've been summoned for jury duty. The case involves a dispute over a sandwich. Both parties are extremely serious. Juror #4 brought knitting.",
+      "category": "life",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 21 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 5,
+      "cooldown": 6,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "serve",
+          "text": "Serve with honor",
+          "effects": [
+            { "kind": "stat", "stat": "smarts", "delta": 4 },
+            { "kind": "stat", "stat": "happiness", "delta": 4 }
+          ],
+          "result": "The sandwich was ruled a sandwich. You did your civic duty and felt strangely taller."
+        },
+        {
+          "id": "excuse",
+          "text": "Try to get excused",
+          "outcomes": [
+            {
+              "weight": 50,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 3 }],
+              "result": "You told the judge you 'believe sandwiches can speak'. You were excused with record speed."
+            },
+            {
+              "weight": 50,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -3 }],
+              "result": "The judge found your enthusiasm 'admirable'. You served. You were foreperson. It ruled you."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 840, "y": 720 }
+    },
+    {
+      "id": "chaos.side_hustle",
+      "title": "The hustle",
+      "description": "A friend pitches you a business: bottled 'concert air' sold to fans as memorabilia. 'The Eagles alone...' he trails off meaningfully.",
+      "category": "jobs",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 16 },
+          { "kind": "money", "op": "lt", "value": 5000 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 6,
+      "cooldown": 4,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "invest",
+          "text": "Seed the hustle ($200)",
+          "outcomes": [
+            {
+              "weight": 30,
+              "effects": [{ "kind": "money", "delta": 2400 }],
+              "result": "People actually bought the air. You made $2,400 selling premium vacuum-sealed atmosphere. Capitalism."
+            },
+            {
+              "weight": 70,
+              "effects": [
+                { "kind": "money", "delta": -200 },
+                { "kind": "stat", "stat": "happiness", "delta": -4 }
+              ],
+              "result": "The bottles just contained regular garage air. Customers could tell, somehow. You lost $200 and one friend."
+            }
+          ]
+        },
+        {
+          "id": "pass",
+          "text": "Decline the air business",
+          "effects": [{ "kind": "stat", "stat": "smarts", "delta": 2 }],
+          "result": "You passed on air. The friend went on to sell bottled 'rain' instead. It also failed."
+        }
+      ],
+      "ui": { "x": 1120, "y": 720 }
+    },
+    {
+      "id": "chaos.tax_audit",
+      "title": "An envelope from the tax office",
+      "description": "Official letterhead. The phrase 'routine audit'. Your hands are already sweating and you haven't opened it yet.",
+      "category": "luck",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "money", "op": "gte", "value": 100000 },
+          { "kind": "age", "min": 22 }
+        ]
+      },
+      "weight": 4,
+      "cooldown": 5,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "accountant",
+          "text": "Hire the guy with the visor ($2,000)",
+          "effects": [
+            { "kind": "money", "delta": -2000 },
+            { "kind": "stat", "stat": "happiness", "delta": 6 }
+          ],
+          "result": "The visor guy found three deductions named after animals. Audit closed. You're clean AND you have a guy now."
+        },
+        {
+          "id": "diy",
+          "text": "Handle it yourself",
+          "outcomes": [
+            {
+              "weight": 55,
+              "weightModifiers": [
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 65 }, "add": 30 }
+              ],
+              "effects": [{ "kind": "stat", "stat": "smarts", "delta": 4 }],
+              "result": "You out-paperworked the audit. They sent a letter saying 'impressive'. This is the highest compliment a tax office can give."
+            },
+            {
+              "weight": 45,
+              "effects": [
+                { "kind": "money", "delta": -8000 },
+                { "kind": "stat", "stat": "happiness", "delta": -8 }
+              ],
+              "result": "You claimed your pet as a dependent. The audit disagreed. $8,000 in back taxes, pet status revoked."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 1400, "y": 720 }
+    },
+    {
+      "id": "chaos.inheritance",
+      "title": "The reading of the will",
+      "description": "A great-uncle you met once at a funeral has left you his estate: a Victorian mansion on a hill. The lawyer adds, casually, 'there's a disclosure about the attic.'",
+      "category": "luck",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 30 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 1.2,
+      "once": true,
+      "weightModifiers": [
+        { "when": { "kind": "flag", "flag": "good_karma", "equals": true }, "multiply": 2 }
+      ],
+      "choices": [
+        {
+          "id": "move_in",
+          "text": "Move in immediately",
+          "effects": [
+            { "kind": "flag", "flag": "haunted_mansion", "value": true },
+            { "kind": "stat", "stat": "happiness", "delta": 8 }
+          ],
+          "result": "The mansion is yours. At night, the attic door opens by itself. Rent is $0 though.",
+          "goto": "chaos.ghost_roommate"
+        },
+        {
+          "id": "sell",
+          "text": "Sell it on the spot",
+          "effects": [
+            { "kind": "money", "delta": 85000 },
+            { "kind": "stat", "stat": "happiness", "delta": 5 }
+          ],
+          "result": "You sold the haunted mansion for $85,000 to a couple who 'love character'. They have been warned. They remain excited."
+        }
+      ],
+      "ui": { "x": 1680, "y": 720 }
+    },
+    {
+      "id": "chaos.ghost_roommate",
+      "title": "Meet Reginald",
+      "description": "The attic ghost introduces himself by moving your furniture three inches to the left. His name is Reginald. He died here in 1911 and has opinions about your decor.",
+      "category": "weird",
+      "weight": 0,
+      "choices": [
+        {
+          "id": "negotiate",
+          "text": "Negotiate house rules",
+          "outcomes": [
+            {
+              "weight": 45,
+              "effects": [
+                { "kind": "flag", "flag": "ghost_roomie", "value": true },
+                { "kind": "money", "delta": 5000 },
+                { "kind": "stat", "stat": "happiness", "delta": 12 }
+              ],
+              "result": "Reginald pays rent in Victorian gold sovereigns he 'misplaced' in 1903. $5,000 worth. Best roommate ever."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -5 },
+                { "kind": "flag", "flag": "ghost_roomie", "value": true }
+              ],
+              "result": "Reginald agreed to stop moving the furniture. He did NOT agree to stop sighing dramatically at 3am."
+            }
+          ]
+        },
+        {
+          "id": "exorcise",
+          "text": "Call an exorcist",
+          "effects": [
+            { "kind": "money", "delta": -800 },
+            { "kind": "unflag", "flag": "haunted_mansion" },
+            { "kind": "stat", "stat": "happiness", "delta": -2 }
+          ],
+          "result": "The exorcist took one look at Reginald's library and they spent four hours discussing Romantic poetry. You're out $800 and the ghost stays."
+        }
+      ],
+      "ui": { "x": 1960, "y": 720 }
+    },
+    {
+      "id": "chaos.time_traveler",
+      "title": "A familiar stranger",
+      "description": "A wild-eyed stranger grabs your arm: 'I'm you. From the future. We don't have much time — the geese—' They glance over their shoulder. 'Just listen.'",
+      "category": "weird",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18, "max": 70 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 1,
+      "once": true,
+      "choices": [
+        {
+          "id": "numbers",
+          "text": "Demand next week's lottery numbers",
+          "outcomes": [
+            {
+              "weight": 30,
+              "effects": [
+                { "kind": "money", "delta": 60000 },
+                { "kind": "stat", "stat": "happiness", "delta": 15 }
+              ],
+              "result": "The numbers hit. $60,000. The stranger winked, said 'don't thank me, thank us', and walked into traffic backwards. They were fine."
+            },
+            {
+              "weight": 70,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -8 }],
+              "result": "The numbers won nothing. 'Oh wait,' the stranger said, 'wrong timeline.' Then they bought a pretzel and left."
+            }
+          ]
+        },
+        {
+          "id": "wisdom",
+          "text": "Ask what to regret less",
+          "effects": [
+            { "kind": "stat", "stat": "smarts", "delta": 10 },
+            { "kind": "stat", "stat": "happiness", "delta": 8 }
+          ],
+          "result": "'Invest early, forgive faster, moisturize.' The stranger dissolved into a flock of pigeons. Solid advice though."
+        },
+        {
+          "id": "punch",
+          "text": "Punch them (you never liked you anyway)",
+          "effects": [
+            { "kind": "stat", "stat": "health", "delta": -4 },
+            { "kind": "stat", "stat": "happiness", "delta": -5 }
+          ],
+          "result": "You punched yourself, technically. The stranger anticipated this and wore padding. 'We always try that,' they sighed."
+        }
+      ],
+      "ui": { "x": 0, "y": 960 }
+    },
+    {
+      "id": "chaos.meteor",
+      "title": "Space rock delivery",
+      "description": "A meteor the size of a toaster crashes into your yard at 3am. It is warm. It smells faintly of burnt toast. The neighbors are pretending they didn't see it.",
+      "category": "luck",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 0.8,
+      "once": true,
+      "choices": [
+        {
+          "id": "sell",
+          "text": "Sell it to a museum ($120,000)",
+          "effects": [
+            { "kind": "money", "delta": 120000 },
+            { "kind": "stat", "stat": "happiness", "delta": 15 }
+          ],
+          "result": "The museum paid $120,000 and named it after you, sort of. 'The [Your Name] Adjacent Meteorite'. Immortality-ish."
+        },
+        {
+          "id": "keep",
+          "text": "Keep it as a lawn ornament",
+          "effects": [
+            { "kind": "flag", "flag": "meteor_owner", "value": true },
+            { "kind": "stat", "stat": "happiness", "delta": 10 }
+          ],
+          "result": "The meteor stays. Property values are either up or down depending on who you ask. Tourists take photos. You charge them $1."
+        }
+      ],
+      "ui": { "x": 280, "y": 960 }
+    },
+    {
+      "id": "chaos.tinfoil_hat",
+      "title": "The truth about pigeons",
+      "description": "A neighbor corners you: 'Pigeons aren't real. They're government drones. The bobbing is them recharging. I have a newsletter.' He produces a newsletter.",
+      "category": "weird",
+      "conditions": { "kind": "age", "min": 14 },
+      "weight": 5,
+      "cooldown": 4,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "subscribe",
+          "text": "Subscribe to the newsletter",
+          "effects": [
+            { "kind": "flag", "flag": "conspiracist", "value": true },
+            { "kind": "stat", "stat": "happiness", "delta": 4 }
+          ],
+          "result": "Issue 1: 'Where Do Birds Go at Night? (Nowhere. They're Off.)' You're in."
+        },
+        {
+          "id": "decline",
+          "text": "Back away slowly",
+          "effects": [{ "kind": "stat", "stat": "smarts", "delta": 2 }],
+          "result": "You declined. But now every pigeon does seem to be watching you. No. Stop that."
+        }
+      ],
+      "ui": { "x": 560, "y": 960 }
+    },
+    {
+      "id": "chaos.alien_contact",
+      "title": "Lights over the reservoir",
+      "description": "The newsletter was right about ONE thing. A disc-shaped craft hovers over the water, broadcasting a beam that sounds like smooth jazz. A ramp lowers.",
+      "category": "weird",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "flag", "flag": "conspiracist", "equals": true },
+          { "kind": "age", "min": 16 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 1.5,
+      "once": true,
+      "choices": [
+        {
+          "id": "board",
+          "text": "Board the ship",
+          "outcomes": [
+            {
+              "weight": 40,
+              "effects": [
+                { "kind": "stat", "stat": "smarts", "delta": 20 },
+                { "kind": "trait", "trait": "lucky", "action": "add" },
+                { "kind": "stat", "stat": "happiness", "delta": 15 }
+              ],
+              "result": "They showed you the galaxy and taught you three truths about the universe. One of them was a recipe for incredible chili."
+            },
+            {
+              "weight": 40,
+              "effects": [
+                { "kind": "stat", "stat": "health", "delta": -8 },
+                { "kind": "flag", "flag": "probed", "value": true }
+              ],
+              "result": "You were probed. Politely, consensually, with advanced instruments, but probed nonetheless. They gave you a commemorative t-shirt."
+            },
+            {
+              "weight": 20,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": 8 }],
+              "result": "Turns out they just wanted your streaming password — their planet has terrible content licensing. You gave them the guest profile."
+            }
+          ]
+        },
+        {
+          "id": "flee",
+          "text": "Absolutely not",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": -3 }],
+          "result": "You ran. The ship played a sad trombone frequency and departed. The newsletter guy will never let this go."
+        }
+      ],
+      "ui": { "x": 840, "y": 960 }
+    },
+    {
+      "id": "chaos.reunion",
+      "title": "The reunion",
+      "description": "At the reunion, the kid who once demanded your lunch money approaches — older, calmer, holding a name tag that says 'Hi, I'm Sorry'.",
+      "category": "relationships",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 25, "max": 60 },
+          { "kind": "chose", "event": "school_bully", "choice": "fight_back" }
+        ]
+      },
+      "weight": 6,
+      "once": true,
+      "choices": [
+        {
+          "id": "accept",
+          "text": "Accept the apology",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 12 }],
+          "result": "You shook hands. He teaches mindfulness now. The tater tot incident was addressed and healed."
+        },
+        {
+          "id": "speech",
+          "text": "Deliver a dramatic speech",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 15 }],
+          "result": "You gave a 6-minute speech about 'the lunch money years'. The ballroom applauded. The bully nodded. Cinema."
+        }
+      ],
+      "ui": { "x": 1120, "y": 960 }
+    },
+    {
+      "id": "chaos.ex_con_offer",
+      "title": "Old acquaintance",
+      "description": "The shady acquaintance from before resurfaces: 'One last job. Totally legal this time. Mostly.' He has a laminated business card now.",
+      "category": "crime",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "chose", "event": "mugging_offer", "choice": "help" },
+          { "kind": "age", "min": 18 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 4,
+      "cooldown": 4,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "decline",
+          "text": "Hard pass",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 3 }],
+          "result": "You declined. He respected it — the business card was for a real paralegal's office. Character growth."
+        },
+        {
+          "id": "accept",
+          "text": "Hear him out",
+          "outcomes": [
+            {
+              "weight": 45,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "lucky" }, "add": 20 }
+              ],
+              "effects": [{ "kind": "money", "delta": 9000 }],
+              "result": "It was actually mostly legal: recovering 'borrowed' vehicles. $9,000 for a weekend's work."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                { "kind": "flag", "flag": "in_prison", "value": true },
+                { "kind": "flag", "flag": "sentence", "value": 2 },
+                { "kind": "unflag", "flag": "employed" },
+                { "kind": "unflag", "flag": "salary" },
+                { "kind": "stat", "stat": "happiness", "delta": -20 }
+              ],
+              "result": "It was NOT mostly legal. Two years this time. The business card was fake. Of course it was."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 1400, "y": 960 }
+    },
+    {
+      "id": "chaos.retirement_bingo",
+      "title": "Bingo night warfare",
+      "description": "Community center bingo. Edna has won eleven weeks straight and it's not luck — it's a system. Tonight, you've brought your own lucky troll doll.",
+      "category": "life",
+      "conditions": { "kind": "age", "min": 60 },
+      "weight": 8,
+      "cooldown": 3,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "compete",
+          "text": "Challenge Edna",
+          "outcomes": [
+            {
+              "weight": 40,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "lucky" }, "add": 25 }
+              ],
+              "effects": [
+                { "kind": "money", "delta": 150 },
+                { "kind": "flag", "flag": "bingo_shark", "value": true },
+                { "kind": "stat", "stat": "happiness", "delta": 12 }
+              ],
+              "result": "B-7. BINGO. Edna's reign ends. $150 richer and a new legend is born."
+            },
+            {
+              "weight": 60,
+              "effects": [{ "kind": "stat", "stat": "happiness", "delta": -4 }],
+              "result": "Edna won again. She looked directly at you when she said it. The troll doll has been retired in disgrace."
+            }
+          ]
+        },
+        {
+          "id": "socialize",
+          "text": "Just enjoy the juice",
+          "effects": [{ "kind": "stat", "stat": "happiness", "delta": 6 }],
+          "result": "You played for fun and lost gracefully. Edna approved of you, which is its own victory."
+        }
+      ],
+      "ui": { "x": 1680, "y": 960 }
+    },
+    {
+      "id": "chaos.dangerous_stunt",
+      "title": "The stunt challenge",
+      "description": "Your friends are filming a stunt video: jumping a shopping cart over a shopping cart. They need someone 'aerodynamic'. They're looking at you.",
+      "category": "weird",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18, "max": 45 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 3,
+      "cooldown": 6,
+      "repeatDecay": 0.5,
+      "choices": [
+        {
+          "id": "decline",
+          "text": "Hard no",
+          "effects": [{ "kind": "stat", "stat": "smarts", "delta": 2 }],
+          "result": "You declined. The shopping cart stunt proceeded without you and ended exactly how you predicted."
+        },
+        {
+          "id": "attempt",
+          "text": "Attempt the jump",
+          "outcomes": [
+            {
+              "weight": 82,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "athletic" }, "add": 10 },
+                { "when": { "kind": "trait", "trait": "lucky" }, "add": 8 }
+              ],
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 12 },
+                { "kind": "flag", "flag": "stunt_legend", "value": true }
+              ],
+              "result": "You cleared it. The video is the crown jewel of the channel. Kids on bikes salute you now."
+            },
+            {
+              "weight": 15,
+              "effects": [
+                { "kind": "stat", "stat": "health", "delta": -12 },
+                { "kind": "stat", "stat": "happiness", "delta": -6 }
+              ],
+              "result": "You did not clear it. The shopping cart is fine. You are mostly fine. The video has 2 million views."
+            },
+            {
+              "weight": 3,
+              "effects": [{ "kind": "die", "cause": "an extremely ill-advised shopping cart stunt" }],
+              "result": "The physics were never in your favor."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 1960, "y": 960 }
+    }
+  ]
+}

@@ -6,10 +6,13 @@ import StatBar from "./StatBar";
 
 interface Props {
   packs: EventPack[];
+  bundledPacks: EventPack[];
+  enabledPackIds: string[];
+  onTogglePack: (id: string) => void;
   onImportPack: (pack: EventPack) => void;
 }
 
-export default function GameScreen({ packs, onImportPack }: Props) {
+export default function GameScreen({ packs, bundledPacks, enabledPackIds, onTogglePack, onImportPack }: Props) {
   const [sim, setSim] = useState<LifeSim | null>(null);
   const [name, setName] = useState("Alex");
   const [seedText, setSeedText] = useState("");
@@ -155,14 +158,31 @@ export default function GameScreen({ packs, onImportPack }: Props) {
 
       <div className="panel">
         <h3>Loaded packs</h3>
-        {packs.map((p) => (
+        {bundledPacks.map((p) => (
           <div key={p.id} className="cond-row">
-            <b>{p.name}</b> <span style={{ color: "var(--muted)" }}>v{p.version}</span>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={enabledPackIds.includes(p.id)}
+                onChange={() => onTogglePack(p.id)}
+              />
+              <b>{p.name}</b> <span style={{ color: "var(--muted)" }}>v{p.version}</span>
+            </label>
             <div style={{ color: "var(--muted)", fontSize: 12 }}>
               {p.events.length} events
             </div>
           </div>
         ))}
+        {packs
+          .filter((p) => !bundledPacks.some((b) => b.id === p.id))
+          .map((p) => (
+            <div key={p.id} className="cond-row">
+              <b>{p.name}</b> <span style={{ color: "var(--muted)" }}>v{p.version}</span>
+              <div style={{ color: "var(--muted)", fontSize: 12 }}>
+                {p.events.length} events (imported)
+              </div>
+            </div>
+          ))}
         <PackSummary packs={packs} />
       </div>
     </div>
