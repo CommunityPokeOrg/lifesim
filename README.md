@@ -37,6 +37,8 @@ npm run preview    # serve the production build
     when a condition holds (e.g. the `athletic` trait tilts fight outcomes).
   - **Effects** — stat deltas, money, trait add/remove, flag set/unset, death.
   - **`goto` chains** — an outcome can hand off to another event immediately.
+  - **World laws** — passive yearly rules applied with no event (inflation,
+    decay, era drift). See [World laws](#world-laws).
 - **Visual mod editor** (`src/editor/`) — a React Flow node graph where each
   node is an event and each edge is a `goto` link from a specific choice.
   Click a node to edit title, conditions, choices, branches, effects, and
@@ -106,6 +108,41 @@ npm run preview    # serve the production build
 
 See `src/engine/types.ts` for the full type definitions and
 `src/engine/schema.ts` for the validation rules.
+
+### World laws
+
+Events need a player choice. **World laws** are the other half: passive,
+data-only yearly rules the engine applies in its passive tick, with no
+pending card. They are how a pack makes the world feel like it moves on its
+own — cost-of-living inflation, slow health decay, era transitions, fame
+cooling off.
+
+```jsonc
+{
+  "id": "inflation",
+  "title": "The cost of living rose.",   // life-log line (optional)
+  "minAge": 18,                           // cadence anchor (default 0)
+  "everyYears": 1,                        // fire every N years (default 1)
+  "chance": 70,                           // 0..100, seeded (default 100)
+  "conditions": { "kind": "flag", "flag": "employed", "equals": true },
+  "drift": [{ "stat": "happiness", "amount": -1, "jitter": 1 }],
+  "effects": [{ "kind": "money", "delta": -500 }]
+}
+```
+
+- A law fires when `minAge <= age < maxAge` **and**
+  `(age - minAge) % everyYears === 0`.
+- `conditions` is the same DSL as events; `effects` is the same effect DSL
+  (`stat`, `money`, `trait`, `flag`, `counter`, `collect`, `die`, …).
+- `drift` is shorthand for per-stat change with optional deterministic
+  `jitter`.
+- A law needs at least one of `effects` or `drift`.
+
+Randomness in a law (`chance` and `drift` jitter) is **stream-isolated**: it
+comes from deterministic noise keyed on `(seed, law id, age)` rather than the
+simulation RNG. Adding, removing or retuning a law therefore cannot change
+which events fire, and a seeded life still replays exactly. (This mirrors the
+temporal-slice `_seeded_unit_noise` used by EraLife.)
 
 ## Triggering & testing events
 

@@ -129,6 +129,26 @@ const job = z.object({
   hint: z.string().max(200).optional(),
 });
 
+const statDrift = z.object({
+  stat: statKey,
+  amount: z.number().min(-100).max(100),
+  jitter: z.number().min(0).max(100).optional(),
+});
+
+const worldLaw = z.object({
+  id,
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(2000).optional(),
+  conditions: condition.optional(),
+  minAge: z.number().int().min(0).max(130).optional(),
+  maxAge: z.number().int().min(0).max(130).optional(),
+  everyYears: z.number().int().min(1).max(100).optional(),
+  chance: z.number().min(0).max(100).optional(),
+  effects: z.array(effect).max(50).optional(),
+  drift: z.array(statDrift).max(20).optional(),
+  silent: z.boolean().optional(),
+});
+
 export const eventPackSchema = z.object({
   id,
   name: z.string().min(1).max(200),
@@ -138,6 +158,7 @@ export const eventPackSchema = z.object({
   actions: z.array(gameAction).max(200).optional(),
   items: z.array(shopItem).max(200).optional(),
   jobs: z.array(job).max(200).optional(),
+  laws: z.array(worldLaw).max(200).optional(),
 });
 
 export type ValidationResult =
@@ -183,13 +204,22 @@ export function validatePack(data: unknown): ValidationResult {
       }
     }
   }
-  // Actions/items/jobs share the pack's id namespace and need unique ids.
-  for (const list of [pack.actions ?? [], pack.items ?? [], pack.jobs ?? []]) {
+  // Actions/items/jobs/laws share the pack's id namespace and need unique ids.
+  for (const list of [pack.actions ?? [], pack.items ?? [], pack.jobs ?? [], pack.laws ?? []]) {
     for (const entry of list) {
       if (ids.has(entry.id)) errors.push(`duplicate id "${entry.id}"`);
       ids.add(entry.id);
       // Note: action gotos are intentionally not checked — actions may chain
       // into events defined by other packs, resolvable only at runtime.
+    }
+  }
+  // World laws must actually do something, over a valid age window.
+  for (const law of pack.laws ?? []) {
+    if (!law.effects?.length && !law.drift?.length) {
+      errors.push(`world law "${law.id}": needs "effects" or "drift"`);
+    }
+    if (law.minAge !== undefined && law.maxAge !== undefined && law.minAge >= law.maxAge) {
+      errors.push(`world law "${law.id}": minAge must be less than maxAge`);
     }
   }
   return errors.length ? { ok: false, errors } : { ok: true, pack };

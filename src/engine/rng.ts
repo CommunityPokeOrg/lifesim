@@ -26,3 +26,29 @@ export function weightedPick(rng: Rng, weights: number[]): number {
   }
   return weights.length - 1;
 }
+
+/**
+ * Deterministic 32-bit string hash (xmur3). Stable across runs, machines and
+ * JS engines — unlike `String.hashCode`-style helpers, whose quality varies.
+ */
+export function hashString(str: string): number {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  h = Math.imul(h ^ (h >>> 16), 2246822507);
+  h = Math.imul(h ^ (h >>> 13), 3266489909);
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+/**
+ * Deterministic unit float in [0, 1) derived from a seed plus arbitrary key
+ * parts — a second, independent entropy stream. Use this for background world
+ * drift so it never advances the simulation RNG and therefore never changes
+ * the sequence of events. (Ported from EraLife's temporal-slice
+ * `_seeded_unit_noise`.)
+ */
+export function seededNoise(seed: number, ...parts: (string | number)[]): number {
+  return makeRng(hashString(`${seed}|${parts.join("|")}`))();
+}

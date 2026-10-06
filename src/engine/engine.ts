@@ -1,5 +1,6 @@
 import { evalCondition, effectiveWeight } from "./conditions";
 import { actionYearTick } from "./actions";
+import { applyWorldLaws } from "./world";
 import { makeRng, weightedPick, type Rng } from "./rng";
 import type {
   Character,
@@ -14,6 +15,7 @@ import type {
   ShopItem,
   SimEvent,
   StatKey,
+  WorldLaw,
 } from "./types";
 
 const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)));
@@ -43,17 +45,22 @@ export interface SimOptions {
  */
 export class LifeSim {
   readonly rng: Rng;
+  /** Effective seed (explicit or generated), used for stream-isolated noise. */
+  readonly seed: number;
   readonly events = new Map<string, SimEvent>();
   /** Player-initiated actions, shop items and jobs, merged from packs. */
   readonly actions = new Map<string, GameAction>();
   readonly items = new Map<string, ShopItem>();
   readonly jobs = new Map<string, Job>();
+  /** Declarative yearly world laws, merged from packs. */
+  readonly laws = new Map<string, WorldLaw>();
   character: Character;
   log: LogEntry[] = [];
   pending: PendingEvent | null = null;
 
   constructor(packs: EventPack[], opts: SimOptions = {}) {
-    this.rng = makeRng(opts.seed ?? Math.floor(Math.random() * 2 ** 31));
+    this.seed = opts.seed ?? Math.floor(Math.random() * 2 ** 31);
+    this.rng = makeRng(this.seed);
     for (const pack of packs) this.loadPack(pack);
     this.character = this.birth(opts.name ?? "Alex");
   }
@@ -64,6 +71,7 @@ export class LifeSim {
     for (const a of pack.actions ?? []) this.actions.set(a.id, a);
     for (const i of pack.items ?? []) this.items.set(i.id, i);
     for (const j of pack.jobs ?? []) this.jobs.set(j.id, j);
+    for (const law of pack.laws ?? []) this.laws.set(law.id, law);
   }
 
   private birth(name: string): Character {
@@ -130,11 +138,19 @@ export class LifeSim {
 
     if (c.traits.includes("sickly")) c.stats.health = clamp(c.stats.health - 1);
 
+    // Data-driven world laws (inflation, decay, era drift…). These resolve
+    // any randomness from stream-isolated seeded noise, so tuning a law never
+    // reshuffles which events fire.
+    notes.push(...applyWorldLaws(this));
+
     return notes;
   }
 
   private checkDeath(): boolean {
     const c = this.character;
+    // A `die` effect may already have fired (e.g. from a world law or an item
+    // passive effect); don't let ageUp draw an event for a dead character.
+    if (!c.alive) return true;
     if (c.stats.health <= 0) {
       this.die("failing health");
       return true;
