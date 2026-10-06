@@ -75,6 +75,8 @@ export class LifeSim {
       flags: {},
       history: {},
       firedOnce: [],
+      lastFired: {},
+      firedCount: {},
       alive: true,
     };
   }
@@ -98,6 +100,7 @@ export class LifeSim {
       if (left <= 0) {
         delete c.flags.in_prison;
         delete c.flags.sentence;
+        if (!c.flags.employed) c.flags.seeking_work = true;
         notes.push("Released from prison.");
       } else {
         c.flags.sentence = left;
@@ -141,6 +144,35 @@ export class LifeSim {
     this.pending = null;
   }
 
+  /**
+   * Events eligible to be drawn right now (conditions pass, `once` not spent,
+   * at least one usable choice) with their effective weights.
+   */
+  eligibleEvents(): { event: SimEvent; weight: number }[] {
+    const c = this.character;
+    const out: { event: SimEvent; weight: number }[] = [];
+    for (const ev of this.events.values()) {
+      if (ev.once && c.firedOnce.includes(ev.id)) continue;
+      if (
+        ev.cooldown !== undefined &&
+        c.lastFired[ev.id] !== undefined &&
+        c.age - c.lastFired[ev.id] < ev.cooldown
+      ) {
+        continue;
+      }
+      if (!evalCondition(ev.conditions, c)) continue;
+      const choices = ev.choices.filter((ch) => evalCondition(ch.conditions, c));
+      if (!choices.length) continue;
+      let w = effectiveWeight(ev.weight ?? 10, ev.weightModifiers, c);
+      // Each past firing dampens a repeatable event's draw weight.
+      if (ev.repeatDecay !== undefined && ev.repeatDecay < 1) {
+        w *= Math.pow(ev.repeatDecay, c.firedCount[ev.id] ?? 0);
+      }
+      out.push({ event: ev, weight: w });
+    }
+    return out;
+  }
+
   /** Advance one year. Returns the queued event, if any. */
   ageUp(): PendingEvent | null {
     const c = this.character;
@@ -154,21 +186,27 @@ export class LifeSim {
     }
     if (this.checkDeath()) return null;
 
-    const eligible: SimEvent[] = [];
-    const weights: number[] = [];
-    for (const ev of this.events.values()) {
-      if (ev.once && c.firedOnce.includes(ev.id)) continue;
-      if (!evalCondition(ev.conditions, c)) continue;
-      const choices = ev.choices.filter((ch) => evalCondition(ch.conditions, c));
-      if (!choices.length) continue;
-      eligible.push(ev);
-      weights.push(effectiveWeight(ev.weight ?? 10, ev.weightModifiers, c));
+    const entries = this.eligibleEvents();
+    const eligible = entries.map((e) => e.event);
+    const weights = entries.map((e) => e.weight);
+
+    // Forced events (milestones like starting school) always queue when
+    // eligible instead of competing in the weighted draw.
+    const forced = entries.filter((e) => e.event.forced);
+    if (forced.length) {
+      const ev = forced[Math.max(0, weightedPick(this.rng, forced.map((f) => f.weight)))].event;
+      this.pending = {
+        event: ev,
+        choices: ev.choices.filter((ch) => evalCondition(ch.conditions, c)),
+      };
+      this.log.push({ age: c.age, text: `${ev.title} — ${ev.description}`, kind: "event" });
+      return this.pending;
     }
 
-    // Quiet-year baseline: ~20% of the total draw weight, so most years
+    // Quiet-year baseline: ~15% of the total draw weight, so most years
     // something happens but calm years exist.
     const total = weights.reduce((s, w) => s + w, 0);
-    const quiet = Math.max(5, total * 0.2);
+    const quiet = Math.max(5, total * 0.15);
     const pick = weightedPick(this.rng, [...weights, quiet]);
     if (pick === weights.length || pick === -1) return null;
 
@@ -190,6 +228,8 @@ export class LifeSim {
 
     const c = this.character;
     c.history[pending.event.id] = choice.id;
+    c.lastFired[pending.event.id] = c.age;
+    c.firedCount[pending.event.id] = (c.firedCount[pending.event.id] ?? 0) + 1;
     if (pending.event.once && !c.firedOnce.includes(pending.event.id)) {
       c.firedOnce.push(pending.event.id);
     }
@@ -228,6 +268,8 @@ export class LifeSim {
       this.log.push({ age: this.character.age, text: `(missing event "${eventId}")`, kind: "result" });
       return;
     }
+    // A `once` event that already fired can't be re-entered via goto.
+    if (ev.once && this.character.firedOnce.includes(ev.id)) return;
     const choices = ev.choices.filter((ch) => evalCondition(ch.conditions, this.character));
     if (!choices.length) return;
     this.pending = { event: ev, choices };

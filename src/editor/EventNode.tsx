@@ -11,7 +11,7 @@ export default function EventNode({ data, selected }: NodeProps<EventNodeData>) 
   return (
     <div className={selected ? "event-node selected" : "event-node"}>
       <Handle type="target" position={Position.Left} />
-      <div className="node-cat">{ev.category ?? "event"} · w={ev.weight ?? 10}{ev.once ? " · once" : ""}</div>
+      <div className="node-cat">{ev.category ?? "event"} · w={ev.weight ?? 10}{ev.once ? " · once" : ""}{ev.cooldown ? ` · cd${ev.cooldown}` : ""}{ev.forced ? " · forced" : ""}</div>
       <div className="node-title">{ev.title}</div>
       {ev.choices.map((ch, i) => (
         <div key={ch.id} className="node-choice" style={{ position: "relative" }}>

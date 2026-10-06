@@ -71,6 +71,9 @@ export const simEventSchema = z.object({
   weight: z.number().min(0).max(1e6).optional(),
   weightModifiers: z.array(weightModifier).max(20).optional(),
   once: z.boolean().optional(),
+  cooldown: z.number().int().min(0).max(100).optional(),
+  forced: z.boolean().optional(),
+  repeatDecay: z.number().min(0).max(1).optional(),
   choices: z.array(choice).min(1).max(20),
   ui: z.object({ x: z.number(), y: z.number() }).optional(),
 });

@@ -24,6 +24,10 @@ export interface Character {
   history: Record<string, string>;
   /** Events that already fired and may not fire again. */
   firedOnce: string[];
+  /** eventId -> age at which it last fired, used by `cooldown`. */
+  lastFired: Record<string, number>;
+  /** eventId -> times fired, used by `repeatDecay`. */
+  firedCount: Record<string, number>;
   alive: boolean;
   deathCause?: string;
 }
@@ -102,6 +106,15 @@ export interface SimEvent {
   weightModifiers?: WeightModifier[];
   /** Fire at most once per life. */
   once?: boolean;
+  /** Minimum years between firings (e.g. 4 = at most every 4th year). */
+  cooldown?: number;
+  /** Guaranteed: when eligible, always queues instead of rolling the draw. */
+  forced?: boolean;
+  /** Repeat dampening: effective weight is multiplied by this once per past
+   *  firing (0..1, default 1 = no dampening). 0.5 halves the draw weight after
+   *  each firing, so a repeated event grows steadily rarer instead of firing
+   *  on a fixed cadence. */
+  repeatDecay?: number;
   /** Choices offered to the player. Must be non-empty. */
   choices: Choice[];
   /** Editor layout metadata — ignored by the engine. */

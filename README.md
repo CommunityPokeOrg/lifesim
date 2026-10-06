@@ -64,6 +64,9 @@ npm run preview    # serve the production build
       "category": "school",
       "weight": 15,                         // draw weight (default 10)
       "once": true,                         // at most once per life
+      "cooldown": 2,                        // min years between firings
+      "repeatDecay": 0.6,                   // each firing multiplies future weight
+      // "forced": true                     // always queues when eligible (milestones)
       "conditions": {
         "kind": "all",
         "conditions": [

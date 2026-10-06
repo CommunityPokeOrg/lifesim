@@ -56,6 +56,21 @@ export default function EventInspector({ event, eventIds, onChange, onDelete }: 
           />{" "}
           Fire once per life
         </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={event.forced ?? false}
+            onChange={(e) => set("forced", e.target.checked || undefined)}
+          />{" "}
+          Guaranteed when eligible (milestone)
+        </label>
+        <label>Cooldown (years between firings, 0 = none)</label>
+        <input
+          type="number"
+          min={0}
+          value={event.cooldown ?? 0}
+          onChange={(e) => set("cooldown", Number(e.target.value) || undefined)}
+        />
       </div>
 
       <div className="section-label">Conditions (all must pass)</div>
