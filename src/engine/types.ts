@@ -140,6 +140,9 @@ export interface EventPack {
   items?: ShopItem[];
   /** Optional jobs the character can apply for. */
   jobs?: Job[];
+  /** Optional declarative world laws: passive yearly rules (inflation,
+   *  decay, era drift…) applied every year without an event. */
+  laws?: WorldLaw[];
 }
 
 /* ------------------------------- actions ------------------------------- */
@@ -208,6 +211,52 @@ export interface Job {
   hireWeight?: number;
   hireModifiers?: WeightModifier[];
   hint?: string;
+}
+
+/* ------------------------------- world laws ------------------------------- */
+
+/**
+ * A declarative, data-only yearly rule. Unlike an event, a law has no
+ * choices: when its cadence and conditions line up it simply applies its
+ * effects (and/or stat drift) to the character. Laws are how a pack makes
+ * the world feel like it moves on its own — cost-of-living inflation, slow
+ * health decay, era transitions, fame cooling off.
+ *
+ * Randomness inside a law is stream-isolated: `chance` and `drift.jitter`
+ * resolve from deterministic seeded noise keyed on (seed, law id, age),
+ * never from the simulation RNG. Adding or tuning a law therefore cannot
+ * perturb which events fire.
+ */
+export interface WorldLaw {
+  id: string;
+  /** Short label written to the life log when the law fires. */
+  title?: string;
+  description?: string;
+  /** Gate: all conditions must hold (same DSL as events). */
+  conditions?: Condition;
+  /** First age the law can fire (the cadence anchor). Default 0. */
+  minAge?: number;
+  /** Exclusive upper age bound. Default unbounded. */
+  maxAge?: number;
+  /** Fire when (age - minAge) is a multiple of this. Default 1 (every year). */
+  everyYears?: number;
+  /** Probability 0..100 the law fires on a due year. Default 100. */
+  chance?: number;
+  /** Effects applied when the law fires (same DSL as events). */
+  effects?: Effect[];
+  /** Numeric per-stat drift applied when the law fires. */
+  drift?: StatDrift[];
+  /** Suppress the life-log line for this law. */
+  silent?: boolean;
+}
+
+/** Mean + deterministic jitter for a single stat, applied by a world law. */
+export interface StatDrift {
+  stat: StatKey;
+  /** Mean change per firing (may be negative). */
+  amount: number;
+  /** Deterministic ± spread around `amount`. Default 0. */
+  jitter?: number;
 }
 
 /* --------------------------------- runtime --------------------------------- */
