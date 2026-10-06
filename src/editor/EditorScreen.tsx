@@ -11,8 +11,13 @@ import ReactFlow, {
   type Node,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import type { EventPack, SimEvent } from "../engine/types";
-import { validatePack } from "../engine/schema";
+import type {
+  DiseaseDef,
+  EventPack,
+  PackSectionInfo,
+  SimEvent,
+} from "../engine/types";
+import { validatePack, validatePackFile } from "../engine/schema";
 import EventNode from "./EventNode";
 import EventInspector from "./EventInspector";
 import { downloadJson, nodesToPack, packToEdges, packToNodes, type EventNodeData } from "./packIo";
@@ -33,6 +38,12 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  /** Nested-pack sections imported with the current pack (id -> display name). */
+  const [sectionNames, setSectionNames] = useState<Map<string, string>>(new Map());
+  /** Disease defs per imported section — kept for export round-trip. */
+  const [sectionAilments, setSectionAilments] = useState<Map<string, DiseaseDef[]>>(new Map());
+  /** Target section for newly added events ("" = top-level events list). */
+  const [newSection, setNewSection] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const eventIds = useMemo(() => nodes.map((n) => n.id), [nodes]);
@@ -43,7 +54,7 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
     (id: string, fn: (ev: SimEvent) => SimEvent) => {
       setNodes((ns) => {
         const next = ns.map((n) =>
-          n.id === id ? { ...n, data: { event: fn(n.data.event) } } : n,
+          n.id === id ? { ...n, data: { ...n.data, event: fn(n.data.event) } } : n,
         );
         setEdges(packToEdges(next));
         return next;
@@ -110,7 +121,7 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
       id,
       type: "eventNode",
       position: { x: 80 + nodes.length * 30, y: 80 + nodes.length * 30 },
-      data: { event: ev },
+      data: { event: ev, sectionId: newSection || undefined },
     };
     setNodes((ns) => [...ns, node]);
     setSelectedId(id);
@@ -119,34 +130,56 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
 
   const importPack = async (file: File) => {
     try {
-      const res = validatePack(JSON.parse(await file.text()));
+      const res = validatePackFile(JSON.parse(await file.text()));
       if (!res.ok) {
         setStatus({ ok: false, text: res.errors.join("\n") });
         return;
       }
-      const { events: _events, ...rest } = res.pack; // keep actions/items/jobs
+      const { events: _events, ...rest } = res.loaded.pack; // keep actions/items/jobs
       setMeta(rest);
-      const ns = packToNodes(res.pack);
+      setSectionNames(new Map(res.loaded.sections.map((s: PackSectionInfo) => [s.id, s.name])));
+      setSectionAilments(
+        new Map(res.loaded.sections.map((s: PackSectionInfo) => [
+          s.id,
+          (s.ailmentIds ?? [])
+            .map((id) => res.loaded.pack.ailments?.find((a) => a.id === id))
+            .filter((a): a is NonNullable<typeof a> => a !== undefined),
+        ])),
+      );
+      setNewSection(res.loaded.sections[0]?.id ?? "");
+      const ns = packToNodes(res.loaded.pack, res.loaded.sections);
       setNodes(ns);
       setEdges(packToEdges(ns));
       setSelectedId(null);
-      setStatus({ ok: true, text: `Imported "${res.pack.name}" (${res.pack.events.length} events).` });
+      const secs = res.loaded.sections.length
+        ? ` across ${res.loaded.sections.length} sections`
+        : "";
+      setStatus({ ok: true, text: `Imported "${res.loaded.pack.name}" (${res.loaded.pack.events.length} events${secs}).` });
     } catch (e) {
       setStatus({ ok: false, text: `Not valid JSON: ${(e as Error).message}` });
     }
   };
 
-  const buildPack = (): EventPack => nodesToPack(nodes, meta);
+  /** Raw file shape (sections preserved) — for export. */
+  const buildPackFile = () =>
+    nodesToPack(nodes, meta, sectionNames, sectionAilments);
+
+  /** Flattened pack — for validation/playtest (what the engine consumes). */
+  const buildPack = (): EventPack => {
+    const file = buildPackFile();
+    const res = validatePackFile(file);
+    return res.ok ? res.loaded.pack : (file as EventPack);
+  };
 
   const exportPack = () => {
-    const pack = buildPack();
-    const res = validatePack(pack);
+    const file = buildPackFile();
+    const res = validatePackFile(file);
     if (!res.ok) {
       setStatus({ ok: false, text: res.errors.join("\n") });
       return;
     }
-    downloadJson(`${pack.id}.json`, pack);
-    setStatus({ ok: true, text: `Exported ${pack.id}.json` });
+    downloadJson(`${file.id}.json`, file);
+    setStatus({ ok: true, text: `Exported ${file.id}.json` });
   };
 
   const validate = () => {
@@ -246,6 +279,16 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
               <input type="text" value={meta.version} onChange={(e) => setMeta({ ...meta, version: e.target.value })} /></div>
             <div className="field"><label>description</label>
               <textarea rows={3} value={meta.description ?? ""} onChange={(e) => setMeta({ ...meta, description: e.target.value })} /></div>
+            {sectionNames.size > 0 && (
+              <div className="field"><label>new events go to section</label>
+                <select value={newSection} onChange={(e) => setNewSection(e.target.value)}>
+                  <option value="">(top level)</option>
+                  {[...sectionNames.entries()].map(([sid, sname]) => (
+                    <option key={sid} value={sid}>{sname}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <p style={{ color: "var(--muted)", fontSize: 12 }}>
               Tap a node to edit it. Drag from a choice handle (right side) to
               another node to create a <code>goto</code> chain. Select an edge and

@@ -499,3 +499,55 @@ button {
   .action-sub { font-size: 14px; }
   .action-reason { font-size: 13px; }
 }
+
+/* ------------------------- people & ailments (parity) ---------------------- */
+
+.people-list { overflow-y: auto; min-height: 0; }
+.person-row { margin-bottom: 10px; }
+.person-head {
+  display: flex; align-items: baseline; gap: 8px; width: 100%;
+  background: none; border: none; padding: 4px 0; cursor: pointer;
+  text-align: left; color: inherit;
+}
+.person-name { font-weight: 600; font-size: 14px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.person-meta { color: var(--muted); font-size: 11px; text-transform: capitalize; }
+.person-rel { font-size: 12px; font-weight: 700; min-width: 26px; text-align: right; }
+.rel-bar { height: 4px; background: var(--panel-2); border-radius: 2px; overflow: hidden; }
+.rel-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+.person-detail { padding: 8px 2px 2px; }
+.person-traits { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.person-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.person-memories { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px; }
+.person-memory { color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+.ailments { margin-top: 6px; }
+.ailment-row {
+  background: var(--panel-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; margin-bottom: 8px;
+}
+.ailment-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.ailment-name { font-size: 13px; font-weight: 600; }
+.ailment-course {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border);
+}
+.course-acute { color: var(--accent-2); border-color: var(--accent-2); }
+.course-chronic { color: var(--accent); border-color: var(--accent); }
+.course-progressive { color: var(--danger); border-color: var(--danger); }
+.ailment-sub { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 11px; margin-top: 3px; }
+.ailment-treatments { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+/* pack tree: per-section enable/disable */
+.pack-sections { margin: 4px 0 8px 14px; }
+.pack-section { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 3px 0; }
+.pack-section input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
+.pack-section.off { color: var(--muted); text-decoration: line-through; }
+
+@media (max-width: 860px) {
+  .person-head { min-height: 40px; align-items: center; }
+  .person-name { font-size: 15px; }
+  .person-actions .btn.mini { min-height: 44px; padding: 10px 14px; font-size: 14px; }
+  .ailment-treatments .btn.mini { min-height: 44px; padding: 10px 14px; font-size: 14px; }
+  .pack-section { min-height: 36px; font-size: 14px; }
+  .pack-section input[type="checkbox"] { width: 20px; height: 20px; }
+}

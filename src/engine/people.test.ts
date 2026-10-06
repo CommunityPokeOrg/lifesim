@@ -48,7 +48,7 @@ describe("people", () => {
     const text = s.interact(mom.id, "spend_time");
     expect(text).toContain(mom.name);
     expect(mom.rel).toBeGreaterThan(before);
-    expect(s.log.at(-1)!.text).toBe(text);
+    expect(s.log[s.log.length - 1].text).toBe(text);
   });
 
   it("limits yearly actions to once per person per year", () => {
@@ -129,7 +129,7 @@ describe("people", () => {
     expect(s.pending!.subject?.id).toBe(mom.id);
     s.resolve("chat");
     expect(mom.rel).toBe(relBefore + 10);
-    expect(s.log.at(-1)!.text).toContain(mom.name);
+    expect(s.log[s.log.length - 1].text).toContain(mom.name);
   });
 
   it("person-gated events stay ineligible without a matching NPC", () => {

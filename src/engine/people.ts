@@ -31,7 +31,7 @@ const nextId = () => `p${++personCounter}`;
 
 function makePerson(
   rng: Rng,
-  init: Omit<Person, "id" | "traits" | "alive" | "lastActAge"> & Partial<Pick<Person, "memories">>,
+  init: Omit<Person, "id" | "traits" | "alive" | "memories" | "lastActAge"> & { memories?: string[] },
 ): Person {
   const traits: string[] = [];
   const n = 1 + Math.floor(rng() * 2);
