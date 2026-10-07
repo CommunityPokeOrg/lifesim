@@ -1,7 +1,7 @@
 import { evalCondition, effectiveWeight } from "./conditions";
 import { hiringModifier, HOUSEHOLD_JOB, jobSalary } from "./household";
 import type { LifeSim } from "./engine";
-import type { Character, Choice, GameAction, Job, ShopItem } from "./types";
+import type { Character, Choice, GameAction, Job, JobRecord, ShopItem } from "./types";
 
 /**
  * Player-initiated actions: jobs, shop purchases, gambling and per-year life
@@ -18,8 +18,12 @@ import type { Character, Choice, GameAction, Job, ShopItem } from "./types";
  *   flags.items         — owned item ids (string[])
  *   flags.item_<id>     — true while owned (item-driven event conditions)
  *   flags.job           — current job title (string)
+ *   flags.job_id        — current job's pack id
+ *   flags.job_field     — current job's career track (Job.field)
+ *   flags.job_history   — JobRecord[] of every job held (`ever` conditions)
  *   history[action.id]  — "done" once an action has ever been performed
  *   history[`buy_${item.id}`] — "done" once purchased
+ *   history[`job_${job.id}`] — "hired" | "rejected", last application result
  */
 
 /** Life-category actions the player may take per year (shared budget). */
@@ -213,6 +217,17 @@ export function applyForJob(sim: LifeSim, jobId: string): { ok: boolean; reason?
     c.flags.employed = true;
     c.flags.salary = jobSalary(sim, job);
     c.flags.job = job.title;
+    c.flags.job_id = job.id;
+    if (job.field) c.flags.job_field = job.field;
+    else delete c.flags.job_field;
+    // Career record for `ever` job conditions (deduped by job id).
+    const hist = (c.flags.job_history as JobRecord[] | undefined) ?? [];
+    if (!hist.some((j) => j.id === job.id)) {
+      c.flags.job_history = [
+        ...hist,
+        { id: job.id, title: job.title, ...(job.field ? { field: job.field } : {}) },
+      ];
+    }
     sim.household.employment = sim.household.enabled && job.id === HOUSEHOLD_JOB.id
       ? { tenure: 0, performance: 50 } : null;
     delete c.flags.seeking_work;
@@ -239,6 +254,8 @@ export function quitJob(sim: LifeSim): boolean {
   delete c.flags.employed;
   delete c.flags.salary;
   delete c.flags.job;
+  delete c.flags.job_id;
+  delete c.flags.job_field;
   sim.household.employment = null;
   c.flags.seeking_work = true;
   sim.log.push({ age: c.age, text: `→ Quit ${title}.`, kind: "event" });

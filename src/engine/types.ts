@@ -54,6 +54,15 @@ export type Condition =
   | { kind: "trait"; trait: string }
   | { kind: "flag"; flag: string; equals?: unknown }
   | { kind: "chose"; event: string; choice: string }
+  /**
+   * Employment prerequisite. With no matchers it means "currently employed";
+   * `id` matches the job's pack id, `title` the display title, `field` the
+   * career track declared on the job def (e.g. "white_collar"). All supplied
+   * matchers must hold. With `ever`, the condition checks the career record
+   * (flags.job_history plus this life's hire history) instead of current
+   * employment — use it for seniority ladders ("must have been an analyst").
+   */
+  | { kind: "job"; id?: string; title?: string; field?: string; ever?: boolean }
   /** Numeric compare on a counter flag (counters are set by `counter` effects). */
   | { kind: "counter"; flag: string; op?: CompareOp; value: number }
   /** At least one living person matches (relation/rel-meter filters). */
@@ -158,11 +167,32 @@ export interface SimEvent {
   ui?: { x: number; y: number };
 }
 
+/**
+ * A dependency on another pack. `pack` is the required pack's id; `version`
+ * is an optional semver-ish range — `>=1.2`, `^1.2.3`, `~1.2`, `=1.0` or a
+ * bare `1.0.0` for an exact match. The engine tolerates missing requirements
+ * (dependent content simply stays locked), but loaders and registries report
+ * them so players know which packs to enable together.
+ */
+export interface PackRequirement {
+  pack: string;
+  version?: string;
+}
+
+/** A job held at some point in this life (flags.job_history entries). */
+export interface JobRecord {
+  id: string;
+  title: string;
+  field?: string;
+}
+
 export interface EventPack {
   id: string;
   name: string;
   version: string;
   description?: string;
+  /** Other packs this pack needs loaded (id + optional version range). */
+  requires?: PackRequirement[];
   events: SimEvent[];
   /** Optional player-initiated actions (casino, life choices…). */
   actions?: GameAction[];
@@ -238,6 +268,9 @@ export interface Job {
   /** Salary paid per year by the engine's passive tick. */
   salary: number;
   description?: string;
+  /** Career track — free-form label ("service", "labor", "white_collar",
+   *  "public", "medical"…) that `job` conditions gate on. */
+  field?: string;
   /** Gate on age, education, flags, past choices, items, stats… */
   conditions?: Condition;
   /** Base hire chance 0-100 (default 65), adjusted by `hireModifiers`. */
@@ -330,6 +363,8 @@ export interface PackFile {
   jobs?: Job[];
   /** Passive yearly world rules. */
   laws?: WorldLaw[];
+  /** Other packs this pack depends on (id + optional version range). */
+  requires?: PackRequirement[];
   names?: { first?: string[]; last?: string[] };
   sections?: PackSection[];
 }

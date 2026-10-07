@@ -179,6 +179,7 @@
       "id": "retail_clerk",
       "title": "Retail Clerk",
       "salary": 19000,
+      "field": "service",
       "description": "Folding sweaters and surviving weekends.",
       "conditions": { "kind": "age", "min": 16 },
       "hireWeight": 85,
@@ -188,6 +189,7 @@
       "id": "waiter",
       "title": "Waiter",
       "salary": 23000,
+      "field": "service",
       "description": "Tips, trays, and tired feet.",
       "conditions": { "kind": "age", "min": 16 },
       "hireWeight": 78,
@@ -200,6 +202,7 @@
       "id": "lifeguard",
       "title": "Lifeguard",
       "salary": 25000,
+      "field": "service",
       "description": "Sun, whistles, and the occasional rescue.",
       "conditions": {
         "kind": "all",
@@ -218,6 +221,7 @@
       "id": "delivery_driver",
       "title": "Delivery Driver",
       "salary": 27000,
+      "field": "labor",
       "description": "Your car, your route, your podcasts.",
       "conditions": {
         "kind": "all",
@@ -233,6 +237,7 @@
       "id": "construction",
       "title": "Construction Worker",
       "salary": 36000,
+      "field": "labor",
       "description": "Hard hat, hard work, decent money.",
       "conditions": {
         "kind": "all",
@@ -251,6 +256,7 @@
       "id": "office_worker",
       "title": "Office Worker",
       "salary": 44000,
+      "field": "white_collar",
       "description": "Spreadsheets, standups, and stale coffee.",
       "conditions": {
         "kind": "all",
@@ -274,6 +280,7 @@
       "id": "teacher",
       "title": "Teacher",
       "salary": 54000,
+      "field": "public",
       "description": "Shaping young minds, losing your voice.",
       "conditions": {
         "kind": "all",
@@ -292,6 +299,7 @@
       "id": "nurse",
       "title": "Registered Nurse",
       "salary": 58000,
+      "field": "medical",
       "description": "Twelve-hour shifts that matter.",
       "conditions": {
         "kind": "all",
@@ -308,6 +316,7 @@
       "id": "software_engineer",
       "title": "Software Engineer",
       "salary": 82000,
+      "field": "white_collar",
       "description": "Ship code, break prod, repeat.",
       "conditions": {
         "kind": "all",
@@ -337,6 +346,7 @@
       "id": "executive",
       "title": "Executive",
       "salary": 98000,
+      "field": "white_collar",
       "description": "Corner office. You've earned the view.",
       "conditions": {
         "kind": "all",
@@ -356,6 +366,7 @@
       "id": "doctor",
       "title": "Doctor",
       "salary": 135000,
+      "field": "medical",
       "description": "A decade of study finally pays off.",
       "conditions": {
         "kind": "all",

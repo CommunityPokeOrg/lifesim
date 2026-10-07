@@ -1,5 +1,6 @@
 import { evalCondition, effectiveWeight } from "./conditions";
 import { actionYearTick, actionsLeft } from "./actions";
+import { dependencyProblems, orderByDependencies } from "./packs";
 import { applyWorldLaws } from "./world";
 import { makeRng, weightedPick, type StatefulRng } from "./rng";
 import {
@@ -96,12 +97,18 @@ export class LifeSim {
   log: LogEntry[] = [];
   pending: PendingEvent | null = null;
 
+  /** Problems with the loaded packs' `requires` — missing packs, version
+   *  mismatches, dependency cycles. Non-fatal: locked content just never
+   *  unlocks. Surfaced so the UI can warn the player. */
+  readonly unmetRequirements: string[];
+
   constructor(packs: EventPack[], opts: SimOptions = {}) {
     this.seed = opts.seed ?? Math.floor(Math.random() * 2 ** 31);
     this.rng = makeRng(this.seed);
     this.world = createWorld(opts.startYear);
     this.household = createHousehold(opts.livingHousehold);
-    for (const pack of packs) this.loadPack(pack);
+    this.unmetRequirements = dependencyProblems(packs);
+    for (const pack of orderByDependencies(packs)) this.loadPack(pack);
     if (this.household.enabled) this.jobs.set(HOUSEHOLD_JOB.id, HOUSEHOLD_JOB);
     this.namePools = mergedNamePools(packs);
     this.character = this.birth(opts.name ?? "Alex");

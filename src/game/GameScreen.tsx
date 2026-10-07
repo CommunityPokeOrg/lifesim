@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LifeSim } from "../engine/engine";
 import { validatePackFile } from "../engine/schema";
-import { sectionKey } from "../engine/packs";
+import { dependencyProblems, sectionKey } from "../engine/packs";
 import { STAT_KEYS, type EventPack, type LoadedPack } from "../engine/types";
 import ActionsPanel from "./ActionsPanel";
 import StatBar from "./StatBar";
@@ -64,7 +64,11 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
         return;
       }
       onImportPack(res.loaded);
-      setImportError("");
+      // Dependency problems are advisory — the pack loads anyway, but its
+      // gated content stays locked until the required packs are enabled.
+      const unmet = dependencyProblems([...packsRef.current, res.loaded.pack])
+        .filter((p) => p.startsWith(`pack "${res.loaded.pack.id}"`));
+      setImportError(unmet.length ? `Imported, but: ${unmet.join("; ")}` : "");
     } catch (e) {
       setImportError(`Not valid JSON: ${(e as Error).message}`);
     }
@@ -212,7 +216,13 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
         </summary>
         {sim && <HouseholdPanel sim={sim} onAct={rerender} />}
         {sim && <details className="current-packs"><summary>This life's rules</summary>
-          {sim.packSources.map((p, i) => <div key={`${p.id}:${i}`} className="household-note">{p.name} · v{p.version}</div>)}
+          {sim.packSources.map((p, i) => <div key={`${p.id}:${i}`} className="household-note">
+            {p.name} · v{p.version}
+            {p.requires?.length ? ` (requires ${p.requires.map((r) => r.pack).join(", ")})` : ""}
+          </div>)}
+          {sim.unmetRequirements.map((p) => (
+            <div key={p} className="household-note" style={{ color: "var(--warn, #c96)" }}>{p}</div>
+          ))}
           <p className="household-note">{sim.household.enabled ? "Living household" : "Classic mode"}. Saved rules stay with this life.</p>
         </details>}
         <h3>Packs for the next life</h3>
@@ -233,6 +243,9 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
               <div style={{ color: "var(--muted)", fontSize: 12 }}>
                 {p.events.length} events
                 {p.ailments?.length ? `, ${p.ailments.length} conditions` : ""}
+                {p.requires?.length
+                  ? ` — requires ${p.requires.map((r) => r.pack + (r.version ? ` ${r.version}` : "")).join(", ")}`
+                  : ""}
               </div>
               {lp.sections.map((s) => {
                 const key = sectionKey(p.id, s.id);
@@ -261,6 +274,9 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
               <b>{p.name}</b> <span style={{ color: "var(--muted)" }}>v{p.version}</span>
               <div style={{ color: "var(--muted)", fontSize: 12 }}>
                 {p.events.length} events (imported)
+                {p.requires?.length
+                  ? ` — requires ${p.requires.map((r) => r.pack + (r.version ? ` ${r.version}` : "")).join(", ")}`
+                  : ""}
               </div>
             </div>
           ))}

@@ -40,6 +40,7 @@ export const HOUSEHOLD_JOB: Job = {
   title: "Harbor Works Assistant",
   description: "A steady local employer. Economic conditions affect hiring, raises and layoffs.",
   salary: 26000,
+  field: "labor",
   hireWeight: 75,
   conditions: { kind: "age", min: 18 },
   hint: "Available from age 18",
@@ -120,6 +121,8 @@ export function employerTick(sim: LifeSim): string[] {
     delete c.flags.employed;
     delete c.flags.salary;
     delete c.flags.job;
+    delete c.flags.job_id;
+    delete c.flags.job_field;
     c.flags.seeking_work = true;
     sim.household.employment = null;
     c.stats.happiness = clamp(c.stats.happiness - 8);

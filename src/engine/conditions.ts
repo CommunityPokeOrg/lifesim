@@ -1,4 +1,4 @@
-import type { Character, CompareOp, Condition } from "./types";
+import type { Character, CompareOp, Condition, JobRecord } from "./types";
 
 function compare(actual: number, op: CompareOp, value: number): boolean {
   switch (op) {
@@ -44,6 +44,37 @@ export function evalCondition(cond: Condition | undefined, c: Character): boolea
         : Boolean(c.flags[cond.flag]);
     case "chose":
       return c.history[cond.event] === cond.choice;
+    case "job": {
+      const matches = (j: { id?: string; title?: string; field?: string }) =>
+        (cond.id === undefined || j.id === cond.id) &&
+        (cond.title === undefined || j.title === cond.title) &&
+        (cond.field === undefined || j.field === cond.field);
+      const current = {
+        id: c.flags.job_id as string | undefined,
+        title: c.flags.job as string | undefined,
+        field: c.flags.job_field as string | undefined,
+      };
+      const employed = Boolean(c.flags.employed || current.id || current.title);
+      const bare =
+        cond.id === undefined && cond.title === undefined && cond.field === undefined;
+      if (!cond.ever) {
+        if (bare) return employed;
+        return employed && matches(current);
+      }
+      // "ever": the career record — hire history plus the current job.
+      if (bare) {
+        const hist = (c.flags.job_history as JobRecord[] | undefined) ?? [];
+        return hist.length > 0 || employed;
+      }
+      if (employed && matches(current)) return true;
+      const hist = (c.flags.job_history as JobRecord[] | undefined) ?? [];
+      if (hist.some((j) => matches(j))) return true;
+      // applyForJob also marks history["job_<id>"] = "hired" on every hire.
+      if (cond.id !== undefined && c.history[`job_${cond.id}`] === "hired") {
+        return cond.title === undefined && cond.field === undefined;
+      }
+      return false;
+    }
     case "counter":
       return compare(Number(c.flags[cond.flag] ?? 0), cond.op ?? "gte", cond.value);
     case "person":

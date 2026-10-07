@@ -28,6 +28,13 @@ const condition: z.ZodType<unknown> = z.lazy(() =>
     z.object({ kind: z.literal("flag"), flag: z.string().min(1).max(64), equals: z.unknown().optional() }),
     z.object({ kind: z.literal("chose"), event: id, choice: id }),
     z.object({
+      kind: z.literal("job"),
+      id: z.string().min(1).max(128).optional(),
+      title: z.string().min(1).max(200).optional(),
+      field: z.string().min(1).max(64).optional(),
+      ever: z.boolean().optional(),
+    }),
+    z.object({
       kind: z.literal("counter"),
       flag: z.string().min(1).max(64),
       op: compareOp.optional(),
@@ -162,6 +169,8 @@ const job = z.object({
   title: z.string().min(1).max(200),
   salary: z.number().int().min(0).max(1e9),
   description: z.string().max(2000).optional(),
+  /** Career track label used by `job` conditions (e.g. "white_collar"). */
+  field: z.string().min(1).max(64).optional(),
   conditions: condition.optional(),
   hireWeight: z.number().min(0).max(100).optional(),
   hireModifiers: z.array(weightModifier).max(20).optional(),
@@ -221,6 +230,12 @@ const worldLaw = z.object({
   silent: z.boolean().optional(),
 });
 
+/** A dependency on another pack: its id plus an optional semver-ish range. */
+const packRequirement = z.object({
+  pack: id,
+  version: z.string().min(1).max(40).optional(),
+});
+
 const packSection = z.object({
   id,
   name: z.string().min(1).max(120),
@@ -242,6 +257,7 @@ const packFileSchema = z
     actions: z.array(gameAction).max(200).optional(),
     items: z.array(shopItem).max(200).optional(),
     jobs: z.array(job).max(200).optional(),
+    requires: z.array(packRequirement).max(50).optional(),
     names: z
       .object({
         first: z.array(z.string().min(1).max(40)).max(500).optional(),
@@ -260,6 +276,7 @@ export const eventPackSchema = z.object({
   items: z.array(shopItem).max(200).optional(),
   jobs: z.array(job).max(200).optional(),
   laws: z.array(worldLaw).max(200).optional(),
+  requires: z.array(packRequirement).max(50).optional(),
 });
 
 export type ValidationResult =
@@ -315,6 +332,9 @@ export function validatePackFile(data: unknown, options: { allowEmpty?: boolean 
     ...(file.laws ?? []),
     ...(file.sections ?? []).flatMap((s) => s.laws ?? []),
   ];
+  for (const req of file.requires ?? []) {
+    if (req.pack === file.id) errors.push(`pack "${file.id}" cannot require itself`);
+  }
   const ailmentIds = new Set<string>();
   for (const d of flatAilments) {
     if (ailmentIds.has(d.id)) errors.push(`duplicate ailment id "${d.id}"`);

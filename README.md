@@ -125,6 +125,7 @@ a new life replaces it.
   "id": "my_pack",
   "name": "My Mod Pack",
   "version": "1.0.0",
+  "requires": [{ "pack": "other_pack", "version": ">=1.0.0" }], // optional, see below
   "events": [
     {
       "id": "big_test",
@@ -218,6 +219,47 @@ still change event eligibility through their effects on character state; a
 seeded life with the same packs still replays exactly. (This mirrors the
 temporal-slice `_seeded_unit_noise` used by EraLife.)
 
+### Pack dependencies (`requires`)
+
+A pack can declare that it only makes sense alongside other packs:
+
+```jsonc
+"requires": [
+  { "pack": "white-collar-jobs", "version": ">=1.0.0" },
+  { "pack": "core" }                          // no version = any
+]
+```
+
+`version` is a semver-ish range: `>=x.y`, `>x.y`, `<=x.y`, `<x.y`, `=x.y`,
+`^x.y.z` (compatible), `~x.y.z` (same minor), or a bare `x.y.z` for an exact
+match. Requirements are enforced at load time, not install time: the bundled
+loader fails fast when the shipped set is unsatisfiable, while imported packs
+load anyway and the game surfaces unmet requirements in the pack panel — a
+dependent pack's content simply stays gated until its requirements are
+enabled. `dependencyProblems()` and `orderByDependencies()` in
+`src/engine/packs.ts` are the resolution primitives; `LifeSim` loads packs in
+dependency order and exposes `sim.unmetRequirements`.
+
+### Jobs, careers and `job` conditions
+
+Job defs (`jobs[]`) may carry a `field` — a free-form career-track label like
+`"service"`, `"labor"`, `"white_collar"`, `"public"` or `"medical"`. Hires
+made through the actions panel record `flags.job_id`, `flags.job_field` and
+appends to `flags.job_history` (`history["job_<id>"]` is also set to
+`"hired"`/`"rejected"` per application), which powers the `job` condition:
+
+```jsonc
+{ "kind": "job" }                                        // currently employed
+{ "kind": "job", "id": "analyst" }                     // holds a specific job
+{ "kind": "job", "field": "white_collar" }            // holds any job in a track
+{ "kind": "job", "id": "analyst", "ever": true }      // held it at any point
+```
+
+Use it in any `conditions:` slot — events, choices, outcomes, actions, shop
+items, jobs themselves (career ladders), weight modifiers and world laws —
+combined with `all`/`any`/`not`. `ever` checks the career record rather than
+current employment, so quitting doesn't revoke seniority prerequisites.
+
 ### Nested packs (subpacks)
 
 A pack file may also declare `sections`, either inline or as sibling files:
@@ -288,6 +330,10 @@ Trigger-style examples:
   (the Total Chaos pack sets flags like `goose_enemy`, `internet_famous`,
   `crypto_stake` to unlock follow-ups)
 - **Past choices**: `{ "kind": "chose", "event": "school_bully", "choice": "fight_back" }`
+- **Jobs & careers**: `{ "kind": "job", "field": "white_collar" }` (actions
+  performable store `history[action.id] = "done"`, so
+  `{ "kind": "chose", "event": "act_embezzle", "choice": "done" }` also works
+  for "has ever done this action")
 - **Compound**: wrap any of the above in `all` / `any` / `not`.
 
 To force-test one event, edit the pack JSON: give the event `"forced": true`

@@ -1,5 +1,9 @@
 import { validatePackFile } from "../engine/schema";
-import { resolveSectionSrcs } from "../engine/packs";
+import {
+  dependencyProblems,
+  orderByDependencies,
+  resolveSectionSrcs,
+} from "../engine/packs";
 import type { LoadedPack } from "../engine/types";
 
 /**
@@ -68,5 +72,17 @@ export function loadBundledPacks(): LoadedPack[] {
     }
     packs.push(res.loaded);
   }
-  return packs;
+
+  // Bundled packs must form a satisfiable set: every `requires` resolves and
+  // load order puts dependencies before the packs that declare them.
+  const problems = dependencyProblems(packs.map((p) => p.pack));
+  if (problems.length) {
+    throw new Error(`bundled packs have unmet requirements:\n${problems.join("\n")}`);
+  }
+  const order = new Map(
+    orderByDependencies(packs.map((p) => p.pack)).map((p, i) => [p.id, i]),
+  );
+  return packs.sort(
+    (a, b) => (order.get(a.pack.id) ?? 0) - (order.get(b.pack.id) ?? 0),
+  );
 }
