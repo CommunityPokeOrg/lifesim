@@ -1,4 +1,5 @@
 import type { LifeSim } from "../engine/engine";
+import { hiringModifier, jobSalary } from "../engine/household";
 import {
   actionsLeft,
   applyForJob,
@@ -42,6 +43,7 @@ export default function ActionsPanel({ sim, onAct }: Props) {
   return (
     <div className="panel actions-panel">
       <h3>Actions</h3>
+      <div className="action-note">{budget} activities left this year. People and job applications share this budget.</div>
       {busy && (
         <div className="action-note">
           {c.alive ? "Resolve the event first." : "This life is over."}
@@ -79,6 +81,7 @@ export default function ActionsPanel({ sim, onAct }: Props) {
           Jobs
           {c.flags.job ? <span className="action-badge">{String(c.flags.job)}</span> : null}
         </summary>
+        {sim.household.enabled && <p className="action-note">{sim.world.economy.phase} economy · hiring {hiringModifier(sim) >= 0 ? "+" : ""}{hiringModifier(sim)} percentage points.</p>}
         {c.flags.employed ? (
           <button className="action-btn danger-lite" disabled={busy} onClick={() => act(() => quitJob(sim))}>
             Quit job
@@ -87,7 +90,7 @@ export default function ActionsPanel({ sim, onAct }: Props) {
         {jobs.map((s) => (
           <ActionRow
             key={s.job.id}
-            title={`${s.job.title} — $${s.job.salary.toLocaleString()}/yr`}
+            title={`${s.job.title} — $${jobSalary(sim, s.job).toLocaleString()}/yr`}
             sub={s.job.description}
             disabled={busy || !s.eligible}
             reason={s.reason}
