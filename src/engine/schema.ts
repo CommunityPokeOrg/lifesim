@@ -196,12 +196,38 @@ const diseaseDef = z.object({
   conditions: condition.optional(),
 });
 
+const worldLawEffect = effect.refine(
+  (e) => ["stat", "money", "trait", "flag", "unflag", "counter", "collect", "loseitem", "die", "cure"].includes(e.kind),
+  { message: "world law effects must be RNG-free and subject-free" },
+);
+
+const statDrift = z.object({
+  stat: statKey,
+  amount: z.number().min(-100).max(100),
+  jitter: z.number().min(0).max(100).optional(),
+});
+
+const worldLaw = z.object({
+  id,
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(2000).optional(),
+  conditions: condition.optional(),
+  minAge: z.number().int().min(0).max(130).optional(),
+  maxAge: z.number().int().min(0).max(130).optional(),
+  everyYears: z.number().int().min(1).max(100).optional(),
+  chance: z.number().min(0).max(100).optional(),
+  effects: z.array(worldLawEffect).max(50).optional(),
+  drift: z.array(statDrift).max(20).optional(),
+  silent: z.boolean().optional(),
+});
+
 const packSection = z.object({
   id,
   name: z.string().min(1).max(120),
   src: z.string().min(1).max(300).optional(),
   events: z.array(simEventSchema).max(500).optional(),
   ailments: z.array(diseaseDef).max(100).optional(),
+  laws: z.array(worldLaw).max(200).optional(),
 });
 
 const packFileSchema = z
@@ -212,6 +238,7 @@ const packFileSchema = z
     description: z.string().max(2000).optional(),
     events: z.array(simEventSchema).max(500).optional(),
     ailments: z.array(diseaseDef).max(100).optional(),
+    laws: z.array(worldLaw).max(200).optional(),
     actions: z.array(gameAction).max(200).optional(),
     items: z.array(shopItem).max(200).optional(),
     jobs: z.array(job).max(200).optional(),
@@ -227,18 +254,20 @@ const packFileSchema = z
     (p) =>
       (p.events?.length ?? 0) > 0 ||
       (p.sections?.length ?? 0) > 0 ||
-      (p.actions?.length ?? 0) > 0,
-    { message: "pack needs at least one event, section or action" },
+      (p.actions?.length ?? 0) > 0 ||
+      (p.laws?.length ?? 0) > 0,
+    { message: "pack needs at least one event, section, action or law" },
   );
 export const eventPackSchema = z.object({
   id,
   name: z.string().min(1).max(200),
   version: z.string().min(1).max(40),
   description: z.string().max(2000).optional(),
-  events: z.array(simEventSchema).min(1).max(500),
+  events: z.array(simEventSchema).max(500),
   actions: z.array(gameAction).max(200).optional(),
   items: z.array(shopItem).max(200).optional(),
   jobs: z.array(job).max(200).optional(),
+  laws: z.array(worldLaw).max(200).optional(),
 });
 
 export type ValidationResult =
@@ -270,10 +299,10 @@ export function validatePackFile(data: unknown): PackValidationResult {
   for (const s of file.sections ?? []) {
     if (sectionIds.has(s.id)) errors.push(`duplicate section id "${s.id}"`);
     sectionIds.add(s.id);
-    if (s.src && (s.events?.length || s.ailments?.length)) {
-      errors.push(`section "${s.id}": "src" cannot be combined with inline events/ailments`);
+    if (s.src && (s.events?.length || s.ailments?.length || s.laws?.length)) {
+      errors.push(`section "${s.id}": "src" cannot be combined with inline events/ailments/laws`);
     }
-    if (!s.src && !(s.events?.length || s.ailments?.length)) {
+    if (!s.src && !(s.events?.length || s.ailments?.length || s.laws?.length)) {
       errors.push(`section "${s.id}" is empty`);
     }
   }
@@ -285,6 +314,10 @@ export function validatePackFile(data: unknown): PackValidationResult {
   const flatAilments = [
     ...(file.ailments ?? []),
     ...(file.sections ?? []).flatMap((s) => s.ailments ?? []),
+  ];
+  const flatLaws = [
+    ...(file.laws ?? []),
+    ...(file.sections ?? []).flatMap((s) => s.laws ?? []),
   ];
   const ailmentIds = new Set<string>();
   for (const d of flatAilments) {
@@ -316,13 +349,21 @@ export function validatePackFile(data: unknown): PackValidationResult {
       }
     }
   }
-  // Actions/items/jobs share the pack's id namespace and need unique ids.
-  for (const list of [file.actions ?? [], file.items ?? [], file.jobs ?? []]) {
+  // Actions/items/jobs/laws share the pack's id namespace and need unique ids.
+  for (const list of [file.actions ?? [], file.items ?? [], file.jobs ?? [], flatLaws]) {
     for (const entry of list) {
       if (ids.has(entry.id)) errors.push(`duplicate id "${entry.id}"`);
       ids.add(entry.id);
       // Note: action gotos are intentionally not checked — actions may chain
       // into events defined by other packs, resolvable only at runtime.
+    }
+  }
+  for (const law of flatLaws) {
+    if (!law.effects?.length && !law.drift?.length) {
+      errors.push(`world law "${law.id}": needs "effects" or "drift"`);
+    }
+    if (law.maxAge !== undefined && (law.minAge ?? 0) >= law.maxAge) {
+      errors.push(`world law "${law.id}": minAge must be less than maxAge`);
     }
   }
   if (errors.length) return { ok: false, errors };

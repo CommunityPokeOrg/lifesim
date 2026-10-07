@@ -21,18 +21,22 @@ export const sectionKey = (packId: string, sectionId: string) => `${packId}:${se
 export function flattenPack(file: PackFile): LoadedPack {
   const events = [...(file.events ?? [])];
   const ailments = [...(file.ailments ?? [])];
+  const laws = [...(file.laws ?? [])];
   const sections: PackSectionInfo[] = [];
   for (const s of file.sections ?? []) {
     const secEvents = s.events ?? [];
     const secAilments = s.ailments ?? [];
+    const secLaws = s.laws ?? [];
     sections.push({
       id: s.id,
       name: s.name,
       eventIds: secEvents.map((e) => e.id),
       ailmentIds: secAilments.map((a) => a.id),
+      lawIds: secLaws.map((law) => law.id),
     });
     events.push(...secEvents);
     ailments.push(...secAilments);
+    laws.push(...secLaws);
   }
   return {
     pack: {
@@ -46,6 +50,7 @@ export function flattenPack(file: PackFile): LoadedPack {
       items: file.items,
       jobs: file.jobs,
       names: file.names,
+      laws: laws.length ? laws : undefined,
     },
     sections,
   };
@@ -60,12 +65,15 @@ export function effectivePack(loaded: LoadedPack, disabled: ReadonlySet<string>)
   const off = loaded.sections.filter((s) => disabled.has(sectionKey(packId, s.id)));
   if (!off.length) return loaded.pack;
   const offEvents = new Set(off.flatMap((s) => s.eventIds));
+  const offLaws = new Set(off.flatMap((s) => s.lawIds));
+  const laws = loaded.pack.laws?.filter((law) => !offLaws.has(law.id));
   const offAilments = new Set(off.flatMap((s) => s.ailmentIds));
   const ailments = loaded.pack.ailments?.filter((a) => !offAilments.has(a.id));
   return {
     ...loaded.pack,
     events: loaded.pack.events.filter((e) => !offEvents.has(e.id)),
     ailments: ailments?.length ? ailments : undefined,
+    laws: laws?.length ? laws : undefined,
   };
 }
 

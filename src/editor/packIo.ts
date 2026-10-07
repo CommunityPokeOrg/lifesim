@@ -5,6 +5,7 @@ import type {
   PackFile,
   PackSectionInfo,
   SimEvent,
+  WorldLaw,
 } from "../engine/types";
 
 export interface EventNodeData {
@@ -75,6 +76,8 @@ export function nodesToPack(
   /** Section id → disease defs imported with the pack.
    *  The graph only carries events, so ailments pass through untouched. */
   sectionAilments?: Map<string, DiseaseDef[]>,
+  /** Section laws pass through unchanged, retaining their toggle scope. */
+  sectionLaws?: Map<string, WorldLaw[]>,
 ): PackFile {
   const eventOf = (n: Node<EventNodeData>) => ({
     ...n.data.event,
@@ -96,10 +99,14 @@ export function nodesToPack(
     }
     bySection.get(sid)!.push(eventOf(n));
   }
-  // Sections that carry only ailments (no events) still round-trip.
-  for (const sid of sectionAilments?.keys() ?? []) {
-    if (sid && !bySection.has(sid)) sectionOrder.push(sid);
+  // Sections that carry only ailments or laws (no events) still round-trip.
+  for (const sid of [...(sectionAilments?.keys() ?? []), ...(sectionLaws?.keys() ?? [])]) {
+    if (sid && !sectionOrder.includes(sid)) sectionOrder.push(sid);
   }
+  const lawIdsInSections = new Set(
+    [...(sectionLaws?.entries() ?? [])].filter(([sid]) => sid).flatMap(([, laws]) => laws.map((law) => law.id)),
+  );
+  const looseLaws = meta.laws?.filter((law) => !lawIdsInSections.has(law.id));
   const inSections = new Set(
     [...(sectionAilments?.values() ?? [])].flat().map((d) => d.id),
   );
@@ -108,6 +115,7 @@ export function nodesToPack(
   );
   const base: PackFile = {
     ...meta,
+    laws: looseLaws?.length ? looseLaws : undefined,
     ailments: looseAilments.length ? looseAilments : undefined,
   };
   if (sectionOrder.length === 0) {
@@ -120,6 +128,7 @@ export function nodesToPack(
       id: sid,
       name: sectionNames?.get(sid) ?? sid,
       events: bySection.get(sid),
+      laws: sectionLaws?.get(sid)?.length ? sectionLaws.get(sid) : undefined,
       ailments: sectionAilments?.get(sid)?.length
         ? sectionAilments.get(sid)
         : undefined,

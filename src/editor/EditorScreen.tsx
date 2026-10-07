@@ -11,7 +11,7 @@ import ReactFlow, {
   type Node,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import type { DiseaseDef, EventPack, PackSectionInfo, SimEvent } from "../engine/types";
+import type { DiseaseDef, EventPack, PackSectionInfo, SimEvent, WorldLaw } from "../engine/types";
 import { validatePack, validatePackFile } from "../engine/schema";
 import EventNode from "./EventNode";
 import EventInspector from "./EventInspector";
@@ -37,6 +37,7 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
   const [sectionNames, setSectionNames] = useState<Map<string, string>>(new Map());
   /** Disease defs per imported section — kept for export round-trip. */
   const [sectionAilments, setSectionAilments] = useState<Map<string, DiseaseDef[]>>(new Map());
+  const [sectionLaws, setSectionLaws] = useState<Map<string, WorldLaw[]>>(new Map());
   /** Target section for newly added events ("" = top-level events list). */
   const [newSection, setNewSection] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -141,6 +142,10 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
             .filter((a): a is NonNullable<typeof a> => a !== undefined),
         ])),
       );
+      setSectionLaws(new Map(res.loaded.sections.map((s) => [
+        s.id,
+        (res.loaded.pack.laws ?? []).filter((law) => s.lawIds.includes(law.id)),
+      ])));
       setNewSection(res.loaded.sections[0]?.id ?? "");
       const ailBySection = new Map<string, DiseaseDef[]>();
       const allAilments = res.loaded.pack.ailments ?? [];
@@ -168,7 +173,7 @@ export default function EditorScreen({ onPlaytest }: { onPlaytest: (pack: EventP
 
   /** Raw file shape (sections preserved) — for export. */
   const buildPackFile = () =>
-    nodesToPack(nodes, meta, sectionNames, sectionAilments);
+    nodesToPack(nodes, meta, sectionNames, sectionAilments, sectionLaws);
 
   /** Flattened pack — for validation/playtest (what the engine consumes). */
   const buildPack = (): EventPack => {

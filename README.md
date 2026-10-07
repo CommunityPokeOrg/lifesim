@@ -39,6 +39,8 @@ npm run preview    # serve the production build
     plus people/disease effects (`person`, `rel`, `relation`, `memory`,
     `ailment`, `cure`) described below.
   - **`goto` chains** — an outcome can hand off to another event immediately.
+  - **World laws** — passive yearly rules (inflation, decay, era drift).
+    See [World laws](#world-laws).
 - **Persistent NPCs** (`src/engine/people.ts`) — the character is born into a
   generated family (mother, father, siblings, grandparent) and events can
   introduce more NPCs (`{ "kind": "person", "role": "partner" }` spawns one).
@@ -133,6 +135,48 @@ npm run preview    # serve the production build
 See `src/engine/types.ts` for the full type definitions and
 `src/engine/schema.ts` for the validation rules.
 
+### World laws
+
+Put `laws` at the top level or inside a `sections` entry. Section laws follow
+the section toggle and survive editor import/export. A pack may contain only
+laws (no events).
+
+Events need a player choice. **World laws** are the other half: passive,
+data-only yearly rules the engine applies in its passive tick, with no
+pending card. They are how a pack makes the world feel like it moves on its
+own — cost-of-living inflation, slow health decay, era transitions, fame
+cooling off.
+
+```jsonc
+{
+  "id": "inflation",
+  "title": "The cost of living rose.",   // life-log line (optional)
+  "minAge": 18,                           // cadence anchor (default 0)
+  "everyYears": 1,                        // fire every N years (default 1)
+  "chance": 70,                           // 0..100, seeded (default 100)
+  "conditions": { "kind": "flag", "flag": "employed", "equals": true },
+  "drift": [{ "stat": "happiness", "amount": -1, "jitter": 1 }],
+  "effects": [{ "kind": "money", "delta": -500 }]
+}
+```
+
+- A law fires when `minAge <= age < maxAge` **and**
+  `(age - minAge) % everyYears === 0`.
+- `conditions` is the same DSL as events; `effects` supports the RNG-free, subject-free subset:
+  `stat`, `money`, `trait`, `flag`, `unflag`, `counter`, `collect`,
+  `loseitem`, `die`, `cure`. `person`, `ailment`, `rel`, `relation` and
+  `memory` effects are rejected in laws.
+- `drift` is shorthand for per-stat change with optional deterministic
+  `jitter`.
+- A law needs at least one of `effects` or `drift`.
+
+Randomness in a law (`chance` and `drift` jitter) is **stream-isolated**: it
+comes from deterministic noise keyed on `(seed, law id, age)` rather than the
+simulation RNG. Adding, removing or retuning a law never advances the event RNG. Laws can
+still change event eligibility through their effects on character state; a
+seeded life with the same packs still replays exactly. (This mirrors the
+temporal-slice `_seeded_unit_noise` used by EraLife.)
+
 ### Nested packs (subpacks)
 
 A pack file may also declare `sections`, either inline or as sibling files:
@@ -153,7 +197,7 @@ A pack file may also declare `sections`, either inline or as sibling files:
 
 `src` sections resolve relative to the manifest's directory (bundled packs
 only — imported packs must inline their sections). Each section can carry
-`events` and `ailments` of its own, and the game UI can toggle sections
+`events`, `ailments` and `laws` of its own, and the game UI can toggle sections
 independently. Flat v1 packs (top-level `events` only) keep working
 unchanged.
 

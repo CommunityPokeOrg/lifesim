@@ -170,6 +170,8 @@ export interface EventPack {
   items?: ShopItem[];
   /** Optional jobs the character can apply for. */
   jobs?: Job[];
+  /** Passive yearly world rules. */
+  laws?: WorldLaw[];
   /** Disease/condition definitions the events may inflict. */
   ailments?: DiseaseDef[];
   /** Optional name pools for generated NPCs. */
@@ -244,6 +246,58 @@ export interface Job {
   hint?: string;
 }
 
+/* ------------------------------- world laws ------------------------------- */
+
+/** Law effects must neither consume the event RNG nor require an NPC subject. */
+export type WorldLawEffect = Extract<Effect, {
+  kind: "stat" | "money" | "trait" | "flag" | "unflag" | "counter" |
+    "collect" | "loseitem" | "die" | "cure";
+}>;
+
+/**
+ * A declarative, data-only yearly rule. Unlike an event, a law has no
+ * choices: when its cadence and conditions line up it simply applies its
+ * effects (and/or stat drift) to the character. Laws are how a pack makes
+ * the world feel like it moves on its own — cost-of-living inflation, slow
+ * health decay, era transitions, fame cooling off.
+ *
+ * Randomness inside a law is stream-isolated: `chance` and `drift.jitter`
+ * resolve from deterministic seeded noise keyed on (seed, law id, age),
+ * never from the simulation RNG. Their state changes can still affect
+ * which events are eligible.
+ */
+export interface WorldLaw {
+  id: string;
+  /** Short label written to the life log when the law fires. */
+  title?: string;
+  description?: string;
+  /** Gate: all conditions must hold (same DSL as events). */
+  conditions?: Condition;
+  /** First age the law can fire (the cadence anchor). Default 0. */
+  minAge?: number;
+  /** Exclusive upper age bound. Default unbounded. */
+  maxAge?: number;
+  /** Fire when (age - minAge) is a multiple of this. Default 1 (every year). */
+  everyYears?: number;
+  /** Probability 0..100 the law fires on a due year. Default 100. */
+  chance?: number;
+  /** RNG-free, subject-free effects applied when the law fires. */
+  effects?: WorldLawEffect[];
+  /** Numeric per-stat drift applied when the law fires. */
+  drift?: StatDrift[];
+  /** Suppress the life-log line for this law. */
+  silent?: boolean;
+}
+
+/** Mean + deterministic jitter for a single stat, applied by a world law. */
+export interface StatDrift {
+  stat: StatKey;
+  /** Mean change per firing (may be negative). */
+  amount: number;
+  /** Deterministic ± spread around `amount`. Default 0. */
+  jitter?: number;
+}
+
 /* ----------------------------- nested packs ------------------------------- */
 
 /**
@@ -260,6 +314,7 @@ export interface PackSection {
   src?: string;
   events?: SimEvent[];
   ailments?: DiseaseDef[];
+  laws?: WorldLaw[];
 }
 
 /** Raw on-disk/imported shape: flat events, nested sections, or both. */
@@ -273,6 +328,8 @@ export interface PackFile {
   actions?: GameAction[];
   items?: ShopItem[];
   jobs?: Job[];
+  /** Passive yearly world rules. */
+  laws?: WorldLaw[];
   names?: { first?: string[]; last?: string[] };
   sections?: PackSection[];
 }
@@ -283,6 +340,7 @@ export interface PackSectionInfo {
   name: string;
   eventIds: string[];
   ailmentIds: string[];
+  lawIds: string[];
 }
 
 /** A validated pack plus its section map (flat packs have no sections). */
