@@ -32,8 +32,9 @@ export default function ActionsPanel({ sim, onAct, mobile }: Props) {
   const items = listItems(sim);
   const life = listActions(sim, "life");
   const casino = listActions(sim, "casino");
+  const crime = listActions(sim, "crime");
   const other = listActions(sim).filter(
-    (s) => !["life", "casino"].includes(s.action.category ?? "life"),
+    (s) => !["life", "casino", "crime"].includes(s.action.category ?? "life"),
   );
   const budget = actionsLeft(sim);
 
@@ -114,6 +115,22 @@ export default function ActionsPanel({ sim, onAct, mobile }: Props) {
           />
         ))}
       </details>
+
+      {crime.length > 0 && (
+        <details className="action-group">
+          <summary>Crime</summary>
+          {crime.map((s) => (
+            <ActionRow
+              key={s.action.id}
+              title={s.action.title}
+              sub={s.action.description}
+              disabled={busy || !s.eligible}
+              reason={s.reason}
+              onClick={() => act(() => performAction(sim, s.action.id))}
+            />
+          ))}
+        </details>
+      )}
 
       <details className="action-group">
         <summary>Casino</summary>

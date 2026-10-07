@@ -1,0 +1,838 @@
+{
+  "id": "carding",
+  "name": "Carding & Fraud (Fictional)",
+  "version": "1.0.0",
+  "description": "A tongue-in-cheek, entirely fictional 'carding career' subplot: burner phones, blank cards, a prop magstripe writer, shady forum 'dumps', and the ever-present risk of declines, stings and dawn raids. Flavor only — no real-world how-to, just BitLife-style choices and consequences.",
+  "events": [
+    {
+      "id": "carding.forum_offer",
+      "title": "A DM you didn't expect",
+      "description": "A message from 'GlitchWizard' on ShadyBay, the internet's least reputable forum: \"saw your posts. u want in on the card game? first lesson free.\" The avatar is a skiing raccoon.",
+      "category": "crime",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 16, "max": 45 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "carding_lifestyle", "equals": true } }
+        ]
+      },
+      "weight": 8,
+      "cooldown": 3,
+      "repeatDecay": 0.5,
+      "weightModifiers": [
+        { "when": { "kind": "money", "op": "lt", "value": 200 }, "multiply": 1.5 },
+        { "when": { "kind": "chose", "event": "carding.forum_offer", "choice": "ignore" }, "multiply": 0.4 }
+      ],
+      "choices": [
+        {
+          "id": "ignore",
+          "text": "Block and ignore",
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": 1 }
+          ],
+          "result": "Blocked. Somewhere, a raccoon in ski goggles sheds a single tear."
+        },
+        {
+          "id": "sign_up",
+          "text": "Check it out ($40 'forum dues')",
+          "conditions": { "kind": "money", "op": "gte", "value": 40 },
+          "effects": [
+            { "kind": "money", "delta": -40 },
+            { "kind": "flag", "flag": "carding_lifestyle", "value": true },
+            { "kind": "counter", "flag": "dumps", "delta": 1 },
+            { "kind": "stat", "stat": "happiness", "delta": 3 }
+          ],
+          "result": "You now have a ShadyBay account, a free 'starter dump' of fictional card strings, and a sudden interest in prepaid phones. The shop's weirder items suddenly make sense."
+        },
+        {
+          "id": "report",
+          "text": "Report the DM",
+          "outcomes": [
+            {
+              "weight": 70,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 4 }
+              ],
+              "result": "A ShadyBay mod actually bans someone for once. You feel briefly powerful."
+            },
+            {
+              "weight": 30,
+              "effects": [],
+              "result": "Your report vanishes into the void. ShadyBay endures."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 0, "y": 900 }
+    },
+    {
+      "id": "carding.terminal_find",
+      "title": "Something's off with this pump",
+      "description": "The card reader on pump 3 wiggles when you touch it — a loose plastic shell that definitely isn't factory. Someone else's gadget. Someone who will probably come back for it.",
+      "category": "crime",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 16 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 5,
+      "cooldown": 3,
+      "repeatDecay": 0.6,
+      "choices": [
+        {
+          "id": "report",
+          "text": "Tell the clerk inside",
+          "outcomes": [
+            {
+              "weight": 60,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 4 },
+                { "kind": "money", "delta": 50 }
+              ],
+              "result": "The clerk is thrilled — they've suspected that pump for a week. There's a $50 'community awareness' reward in it for you."
+            },
+            {
+              "weight": 40,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 2 }
+              ],
+              "result": "The clerk shrugs and jots a note. You did your civic duty; somewhere a skimmer owner is about to have a confusing day."
+            }
+          ]
+        },
+        {
+          "id": "walk_away",
+          "text": "Not your problem",
+          "result": "You finish pumping and drive off. Someone else's bad day stays someone else's."
+        },
+        {
+          "id": "take_it",
+          "text": "Pry it loose and pocket it",
+          "conditions": { "kind": "flag", "flag": "carding_lifestyle", "equals": true },
+          "outcomes": [
+            {
+              "weight": 70,
+              "effects": [
+                { "kind": "counter", "flag": "dumps", "delta": 2 },
+                { "kind": "counter", "flag": "skimmer_parts", "delta": 1 },
+                { "kind": "counter", "flag": "carding_heat", "delta": 1 }
+              ],
+              "result": "A memory chip of fictional numbers and some interesting connectors. Into the backpack it goes. You now understand why people pay GlitchWizard."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                { "kind": "counter", "flag": "carding_heat", "delta": 2 },
+                { "kind": "stat", "stat": "happiness", "delta": -5 }
+              ],
+              "result": "A beat-up sedan idles nearby and its driver looks VERY interested in your hands. You set the thing down gently and leave briskly."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 280, "y": 900 }
+    },
+    {
+      "id": "carding.fraud_alert",
+      "title": "Your bank calls",
+      "description": "\"Did you attempt a purchase of $847 at a gas station four states away?\" The fraud department sounds tired. You did not. The victim side of carding, it turns out, is not fun.",
+      "category": "crime",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "money", "op": "gt", "value": 300 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 6,
+      "cooldown": 4,
+      "repeatDecay": 0.5,
+      "choices": [
+        {
+          "id": "freeze",
+          "text": "Freeze the card and dispute everything",
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": -1 }
+          ],
+          "result": "Forty minutes on hold later, your card is dead and a new one is in the mail. The hold music haunts you."
+        },
+        {
+          "id": "dispute",
+          "text": "Just dispute the charge",
+          "outcomes": [
+            {
+              "weight": 65,
+              "effects": [
+                { "kind": "money", "delta": 400 }
+              ],
+              "result": "The bank sides with you. The $847 is restored, plus a modest apology credit."
+            },
+            {
+              "weight": 35,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -4 },
+                { "kind": "money", "delta": -300 }
+              ],
+              "result": "The bank 'cannot verify your claim.' You lose the money and forty minutes of your life."
+            }
+          ]
+        },
+        {
+          "id": "hang_up",
+          "text": "Hang up — probably a scam call anyway",
+          "outcomes": [
+            {
+              "weight": 50,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": 1 }
+              ],
+              "result": "Paranoia: 1, fraud department: 0. Nothing bad happens. This time."
+            },
+            {
+              "weight": 50,
+              "effects": [
+                { "kind": "money", "delta": -600 },
+                { "kind": "stat", "stat": "happiness", "delta": -5 }
+              ],
+              "result": "It was not a scam call. It was a warning, and the charges kept coming."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 560, "y": 900 }
+    },
+    {
+      "id": "carding.mule_offer",
+      "title": "A wholesale offer",
+      "description": "GlitchWizard introduces you to 'Marlo', who buys dumps in bulk. \"Two stacks, cash tonight, no questions.\" Marlo has a van. Of course he has a van.",
+      "category": "crime",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "age", "min": 18 },
+          { "kind": "flag", "flag": "carding_lifestyle", "equals": true },
+          { "kind": "counter", "flag": "dumps", "op": "gte", "value": 2 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 12,
+      "cooldown": 4,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "sell",
+          "text": "Hand over two stacks",
+          "outcomes": [
+            {
+              "weight": 55,
+              "effects": [
+                { "kind": "money", "delta": 1400 },
+                { "kind": "counter", "flag": "dumps", "delta": -2 },
+                { "kind": "counter", "flag": "carding_heat", "delta": 2 },
+                { "kind": "stat", "stat": "happiness", "delta": 6 }
+              ],
+              "result": "Marlo counts out $1,400 in twenties that smell faintly of motor oil. The van departs."
+            },
+            {
+              "weight": 20,
+              "effects": [
+                { "kind": "counter", "flag": "dumps", "delta": -2 },
+                { "kind": "counter", "flag": "carding_heat", "delta": 1 },
+                { "kind": "stat", "stat": "happiness", "delta": -8 }
+              ],
+              "result": "Marlo pays in expired coupons and drives off. There is no honor among people named Marlo."
+            },
+            {
+              "weight": 25,
+              "weightModifiers": [
+                { "when": { "kind": "counter", "flag": "carding_heat", "op": "gte", "value": 5 }, "add": 30 }
+              ],
+              "effects": [
+                { "kind": "counter", "flag": "carding_heat", "delta": 3 }
+              ],
+              "result": "The 'buyer' in the next car over is wearing a wire. You clock it and walk — but the attention is earned anyway.",
+              "goto": "carding.police_encounter"
+            }
+          ]
+        },
+        {
+          "id": "haggle",
+          "text": "Ask for double",
+          "outcomes": [
+            {
+              "weight": 30,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 20 }
+              ],
+              "effects": [
+                { "kind": "money", "delta": 2800 },
+                { "kind": "counter", "flag": "dumps", "delta": -2 },
+                { "kind": "counter", "flag": "carding_heat", "delta": 3 }
+              ],
+              "result": "Marlo respects the audacity. $2,800 changes hands. So does some of his respect for your judgment."
+            },
+            {
+              "weight": 70,
+              "effects": [
+                { "kind": "stat", "stat": "happiness", "delta": -4 }
+              ],
+              "result": "Marlo laughs and drives off. Deal's off. The van's taillights have a judgmental quality."
+            }
+          ]
+        },
+        {
+          "id": "decline",
+          "text": "Too hot — walk away",
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": 1 }
+          ],
+          "result": "You decline. Marlo shrugs, unconcerned. There will always be another Marlo."
+        }
+      ],
+      "ui": { "x": 840, "y": 900 }
+    },
+    {
+      "id": "carding.terminal_hold",
+      "title": "\"Can you wait a moment?\"",
+      "description": "The register beeps. The cashier picks up the phone and says \"yeah, it's doing it again\" while looking directly at you. The card stays in the machine.",
+      "category": "crime",
+      "weight": 0,
+      "choices": [
+        {
+          "id": "bolt",
+          "text": "Leave the card and go",
+          "effects": [
+            { "kind": "counter", "flag": "carding_heat", "delta": 3 },
+            { "kind": "stat", "stat": "happiness", "delta": -4 }
+          ],
+          "result": "You speed-walk out. Somewhere, a 'be on the lookout' note gets your height and jacket color exactly right."
+        },
+        {
+          "id": "play_dumb",
+          "text": "Wait it out like an innocent customer",
+          "outcomes": [
+            {
+              "weight": 50,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 20 }
+              ],
+              "effects": [
+                { "kind": "counter", "flag": "carding_heat", "delta": 1 },
+                { "kind": "stat", "stat": "happiness", "delta": -2 }
+              ],
+              "result": "The manager apologizes, hands the card back, and offers a coupon. You decline the coupon. Even you have limits."
+            },
+            {
+              "weight": 50,
+              "effects": [
+                { "kind": "counter", "flag": "carding_heat", "delta": 3 }
+              ],
+              "result": "The 'manager on the phone' was actually calling it in. A patrol car is already outside.",
+              "goto": "carding.police_encounter"
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 1120, "y": 900 }
+    },
+    {
+      "id": "carding.police_encounter",
+      "title": "Pulled aside",
+      "description": "\"Evening. We've had reports of funny business with cards in the area. Mind if we ask a couple of questions?\" The officer's pen is already out.",
+      "category": "crime",
+      "weight": 0,
+      "choices": [
+        {
+          "id": "cooperate",
+          "text": "Cooperate politely",
+          "outcomes": [
+            {
+              "weight": 65,
+              "weightModifiers": [
+                { "when": { "kind": "counter", "flag": "carding_heat", "op": "gte", "value": 6 }, "multiply": 0.3 }
+              ],
+              "effects": [
+                { "kind": "counter", "flag": "carding_heat", "delta": -1 },
+                { "kind": "stat", "stat": "happiness", "delta": -2 }
+              ],
+              "result": "Ten minutes of questions and you're free to go. Your pulse returns to normal. Eventually."
+            },
+            {
+              "weight": 25,
+              "effects": [
+                { "kind": "loseitem", "item": "msr_writer" },
+                { "kind": "flag", "flag": "dumps", "value": 0 },
+                { "kind": "flag", "flag": "cloned_cards", "value": 0 },
+                { "kind": "flag", "flag": "pvc_cards", "value": 0 },
+                { "kind": "counter", "flag": "carding_heat", "delta": 2 },
+                { "kind": "stat", "stat": "happiness", "delta": -8 }
+              ],
+              "result": "They take a long look through your things and confiscate the interesting bits. No charges — this time. Your 'collection' is gone."
+            },
+            {
+              "weight": 10,
+              "weightModifiers": [
+                { "when": { "kind": "counter", "flag": "carding_heat", "op": "gte", "value": 4 }, "add": 40 }
+              ],
+              "effects": [
+                { "kind": "flag", "flag": "in_prison", "value": true },
+                { "kind": "flag", "flag": "sentence", "value": 3 },
+                { "kind": "unflag", "flag": "employed" },
+                { "kind": "unflag", "flag": "salary" },
+                { "kind": "unflag", "flag": "in_school" },
+                { "kind": "unflag", "flag": "in_college" },
+                { "kind": "stat", "stat": "happiness", "delta": -20 }
+              ],
+              "result": "\"That's not your card, is it?\" It was not, in fact, your card. Handcuffs click.",
+              "goto": "carding.busted"
+            }
+          ]
+        },
+        {
+          "id": "talk",
+          "text": "Talk your way out",
+          "outcomes": [
+            {
+              "weight": 55,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "charming" }, "add": 30 },
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 70 }, "add": 10 }
+              ],
+              "effects": [
+                { "kind": "counter", "flag": "carding_heat", "delta": -1 },
+                { "kind": "stat", "stat": "happiness", "delta": 3 }
+              ],
+              "result": "You radiate such a convincing aura of boring lawfulness that they lose interest mid-question."
+            },
+            {
+              "weight": 45,
+              "effects": [
+                { "kind": "flag", "flag": "in_prison", "value": true },
+                { "kind": "flag", "flag": "sentence", "value": 2 },
+                { "kind": "unflag", "flag": "employed" },
+                { "kind": "unflag", "flag": "salary" },
+                { "kind": "unflag", "flag": "in_school" },
+                { "kind": "unflag", "flag": "in_college" },
+                { "kind": "stat", "stat": "happiness", "delta": -15 }
+              ],
+              "result": "\"Sir, please stop talking.\" You do not stop talking. It does not help.",
+              "goto": "carding.busted"
+            }
+          ]
+        },
+        {
+          "id": "run",
+          "text": "Run",
+          "outcomes": [
+            {
+              "weight": 40,
+              "weightModifiers": [
+                { "when": { "kind": "trait", "trait": "athletic" }, "add": 30 },
+                { "when": { "kind": "trait", "trait": "lucky" }, "add": 15 }
+              ],
+              "effects": [
+                { "kind": "counter", "flag": "carding_heat", "delta": 4 },
+                { "kind": "stat", "stat": "health", "delta": -4 }
+              ],
+              "result": "You vault a fence, lose a shoe, and lose them. Somewhere a report describes 'a suspicious jogger'."
+            },
+            {
+              "weight": 60,
+              "effects": [
+                { "kind": "flag", "flag": "in_prison", "value": true },
+                { "kind": "flag", "flag": "sentence", "value": 3 },
+                { "kind": "unflag", "flag": "employed" },
+                { "kind": "unflag", "flag": "salary" },
+                { "kind": "unflag", "flag": "in_school" },
+                { "kind": "unflag", "flag": "in_college" },
+                { "kind": "stat", "stat": "health", "delta": -6 },
+                { "kind": "stat", "stat": "happiness", "delta": -15 }
+              ],
+              "result": "You make it thirty yards. The fence was taller than it looked.",
+              "goto": "carding.busted"
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 1400, "y": 900 }
+    },
+    {
+      "id": "carding.busted",
+      "title": "Booked",
+      "description": "Fingerprints, paperwork, a bench that's bolted to the floor. The evidence bag has your name on it. Literally — they wrote it on there.",
+      "category": "crime",
+      "weight": 0,
+      "choices": [
+        {
+          "id": "plea",
+          "text": "Take the plea deal",
+          "effects": [
+            { "kind": "flag", "flag": "sentence", "value": 1 },
+            { "kind": "stat", "stat": "happiness", "delta": -3 }
+          ],
+          "result": "Your lawyer mutters \"take it\" and you take it. A shorter sentence, and a lifetime of explaining yourself."
+        },
+        {
+          "id": "fight",
+          "text": "Fight the charges",
+          "outcomes": [
+            {
+              "weight": 30,
+              "weightModifiers": [
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 70 }, "add": 15 }
+              ],
+              "effects": [
+                { "kind": "flag", "flag": "sentence", "value": 2 },
+                { "kind": "stat", "stat": "happiness", "delta": 2 }
+              ],
+              "result": "The stack of evidence had a stack of problems. The judge knocks the sentence down. You feel briefly like a courtroom drama extra."
+            },
+            {
+              "weight": 70,
+              "effects": [
+                { "kind": "flag", "flag": "sentence", "value": 5 },
+                { "kind": "stat", "stat": "happiness", "delta": -8 }
+              ],
+              "result": "The judge does not find your 'I was holding it for a friend' argument persuasive. The sentence grows."
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 1680, "y": 900 }
+    },
+    {
+      "id": "carding.heat_raid",
+      "title": "A very loud knock",
+      "description": "6:04 a.m. Someone is knocking with the confidence of a battering ram that knows it's coming next. \"Open up!\" Your luck has run out.",
+      "category": "crime",
+      "forced": true,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "flag", "flag": "carding_lifestyle", "equals": true },
+          { "kind": "counter", "flag": "carding_heat", "op": "gte", "value": 8 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "weight": 45,
+      "choices": [
+        {
+          "id": "open",
+          "text": "Open the door",
+          "effects": [
+            { "kind": "flag", "flag": "in_prison", "value": true },
+            { "kind": "flag", "flag": "sentence", "value": 4 },
+            { "kind": "unflag", "flag": "employed" },
+            { "kind": "unflag", "flag": "salary" },
+            { "kind": "unflag", "flag": "in_school" },
+            { "kind": "unflag", "flag": "in_college" },
+            { "kind": "loseitem", "item": "msr_writer" },
+            { "kind": "flag", "flag": "dumps", "value": 0 },
+            { "kind": "flag", "flag": "cloned_cards", "value": 0 },
+            { "kind": "flag", "flag": "pvc_cards", "value": 0 },
+            { "kind": "flag", "flag": "carding_heat", "value": 0 },
+            { "kind": "stat", "stat": "happiness", "delta": -25 }
+          ],
+          "result": "You open it. Men in windbreakers spread through your home like an unpleasant tide.",
+          "goto": "carding.busted"
+        },
+        {
+          "id": "shred",
+          "text": "Shred, wipe, and stall",
+          "outcomes": [
+            {
+              "weight": 45,
+              "weightModifiers": [
+                { "when": { "kind": "stat", "stat": "smarts", "op": "gte", "value": 75 }, "add": 20 }
+              ],
+              "effects": [
+                { "kind": "loseitem", "item": "msr_writer" },
+                { "kind": "flag", "flag": "dumps", "value": 0 },
+                { "kind": "flag", "flag": "cloned_cards", "value": 0 },
+                { "kind": "flag", "flag": "pvc_cards", "value": 0 },
+                { "kind": "flag", "flag": "carding_heat", "value": 4 },
+                { "kind": "stat", "stat": "happiness", "delta": -6 }
+              ],
+              "result": "By the time you open the door you're just a tired person with no interesting possessions. They leave with a warning and a stapled pamphlet about fraud prevention."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                { "kind": "flag", "flag": "in_prison", "value": true },
+                { "kind": "flag", "flag": "sentence", "value": 4 },
+                { "kind": "unflag", "flag": "employed" },
+                { "kind": "unflag", "flag": "salary" },
+                { "kind": "unflag", "flag": "in_school" },
+                { "kind": "unflag", "flag": "in_college" },
+                { "kind": "flag", "flag": "dumps", "value": 0 },
+                { "kind": "flag", "flag": "cloned_cards", "value": 0 },
+                { "kind": "flag", "flag": "pvc_cards", "value": 0 },
+                { "kind": "flag", "flag": "carding_heat", "value": 0 },
+                { "kind": "stat", "stat": "happiness", "delta": -25 }
+              ],
+              "result": "The door opens on its own — kicked. The papers were still warm.",
+              "goto": "carding.busted"
+            }
+          ]
+        }
+      ],
+      "ui": { "x": 1960, "y": 900 }
+    }
+  ],
+  "items": [
+    {
+      "id": "burner_phone",
+      "name": "Burner Phone",
+      "price": 90,
+      "description": "A prepaid flip phone bought with cash and zero questions. In fiction: essential. In real life: just a cheap phone. Unlocks ShadyBay browsing for the fictional-card-trade lifestyle.",
+      "conditions": { "kind": "age", "min": 16 },
+      "repeatable": true,
+      "usesPerYear": 1,
+      "effects": [
+        { "kind": "stat", "stat": "happiness", "delta": 1 }
+      ],
+      "hint": "Age 16+"
+    },
+    {
+      "id": "blank_pvc_cards",
+      "name": "Blank PVC Cards (10-pack)",
+      "price": 45,
+      "description": "A shrink-wrapped stack of blank white plastic cards. Harmless on their own — the game tracks them as stock for the fictional encode activity.",
+      "conditions": { "kind": "age", "min": 16 },
+      "repeatable": true,
+      "usesPerYear": 3,
+      "effects": [
+        { "kind": "counter", "flag": "pvc_cards", "delta": 10 }
+      ],
+      "hint": "Age 16+"
+    },
+    {
+      "id": "msr_writer",
+      "name": "MSR-606 Magstripe Writer",
+      "price": 650,
+      "description": "A chunky grey box with a card slot. In this game it's a prop that gates the fictional 'encode cards' activity — it comes with no manual, no drivers, and no actual data.",
+      "conditions": { "kind": "age", "min": 18 },
+      "effects": [
+        { "kind": "stat", "stat": "smarts", "delta": 2 },
+        { "kind": "stat", "stat": "happiness", "delta": 2 }
+      ],
+      "hint": "Age 18+"
+    }
+  ],
+  "actions": [
+    {
+      "id": "act_score_dumps",
+      "title": "Score dumps on ShadyBay ($150)",
+      "description": "Buy a bundle of fictional stolen card strings from a forum stranger. Might be legit goods. Might be Monopoly numbers. Might be a cop.",
+      "category": "crime",
+      "cost": 150,
+      "usesPerYear": 3,
+      "usesBudget": false,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "flag", "flag": "carding_lifestyle", "equals": true },
+          { "kind": "flag", "flag": "item_burner_phone", "equals": true },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "outcomes": [
+        {
+          "weight": 55,
+          "effects": [
+            { "kind": "counter", "flag": "dumps", "delta": 1 },
+            { "kind": "stat", "stat": "happiness", "delta": 2 }
+          ],
+          "result": "GlitchWizard comes through. A zipped file of fictional card strings lands in your burner inbox."
+        },
+        {
+          "weight": 25,
+          "effects": [
+            { "kind": "stat", "stat": "happiness", "delta": -4 }
+          ],
+          "result": "You sent the money. The file never came. Welcome to ShadyBay."
+        },
+        {
+          "weight": 12,
+          "effects": [
+            { "kind": "counter", "flag": "dumps", "delta": 2 },
+            { "kind": "counter", "flag": "carding_heat", "delta": 1 }
+          ],
+          "result": "Jackpot — a bulk bundle at a suspicious discount. It's probably a trap, but it downloaded anyway."
+        },
+        {
+          "weight": 8,
+          "effects": [
+            { "kind": "counter", "flag": "carding_heat", "delta": 2 }
+          ],
+          "result": "The seller was very eager. Suspiciously eager. Because it was a sting, and someone would like a word.",
+          "goto": "carding.police_encounter"
+        }
+      ],
+      "hint": "Needs a burner phone and a bad decision (see the ShadyBay DM)"
+    },
+    {
+      "id": "act_encode_cards",
+      "title": "Encode blank cards",
+      "description": "Feed a fictional dump and a blank card into the writer. Out comes a prop card with delusions of legitimacy.",
+      "category": "crime",
+      "usesPerYear": 3,
+      "usesBudget": false,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "flag", "flag": "item_msr_writer", "equals": true },
+          { "kind": "counter", "flag": "dumps", "op": "gte", "value": 1 },
+          { "kind": "counter", "flag": "pvc_cards", "op": "gte", "value": 1 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "outcomes": [
+        {
+          "weight": 75,
+          "effects": [
+            { "kind": "counter", "flag": "cloned_cards", "delta": 1 },
+            { "kind": "counter", "flag": "dumps", "delta": -1 },
+            { "kind": "counter", "flag": "pvc_cards", "delta": -1 },
+            { "kind": "counter", "flag": "carding_heat", "delta": 1 }
+          ],
+          "result": "The writer buzzes, the card slides out encoded. Plastic with delusions of legitimacy."
+        },
+        {
+          "weight": 25,
+          "effects": [
+            { "kind": "counter", "flag": "pvc_cards", "delta": -1 },
+            { "kind": "stat", "stat": "happiness", "delta": -3 }
+          ],
+          "result": "The writer chews the card. A $4.50 loss and a small identity crisis."
+        }
+      ],
+      "hint": "Needs the writer, a dump, and a blank card"
+    },
+    {
+      "id": "act_run_card",
+      "title": "Run a cloned card",
+      "description": "Try one of your encoded prop cards at a store. The decline risk is real — so is the chance someone's watching.",
+      "category": "crime",
+      "usesPerYear": 4,
+      "usesBudget": false,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "counter", "flag": "cloned_cards", "op": "gte", "value": 1 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "outcomes": [
+        {
+          "weight": 45,
+          "weightModifiers": [
+            { "when": { "kind": "trait", "trait": "lucky" }, "add": 10 },
+            { "when": { "kind": "counter", "flag": "carding_heat", "op": "gte", "value": 6 }, "multiply": 0.7 }
+          ],
+          "effects": [
+            { "kind": "money", "delta": 450 },
+            { "kind": "counter", "flag": "cloned_cards", "delta": -1 },
+            { "kind": "counter", "flag": "carding_heat", "delta": 2 },
+            { "kind": "stat", "stat": "happiness", "delta": 5 }
+          ],
+          "result": "Approved. You fence the haul and pocket $450. Easy money has a very particular smell, and you are starting to recognize it."
+        },
+        {
+          "weight": 35,
+          "weightModifiers": [
+            { "when": { "kind": "counter", "flag": "carding_heat", "op": "gte", "value": 4 }, "add": 15 }
+          ],
+          "effects": [
+            { "kind": "counter", "flag": "cloned_cards", "delta": -1 },
+            { "kind": "counter", "flag": "carding_heat", "delta": 2 },
+            { "kind": "stat", "stat": "happiness", "delta": -4 }
+          ],
+          "result": "Declined. The cashier's eyebrow does something eloquent. You leave the card and your dignity."
+        },
+        {
+          "weight": 15,
+          "weightModifiers": [
+            { "when": { "kind": "counter", "flag": "carding_heat", "op": "gte", "value": 6 }, "add": 20 }
+          ],
+          "effects": [
+            { "kind": "counter", "flag": "cloned_cards", "delta": -1 },
+            { "kind": "counter", "flag": "carding_heat", "delta": 3 }
+          ],
+          "result": "Declined — and the machine keeps the card. The cashier reaches for the phone.",
+          "goto": "carding.terminal_hold"
+        },
+        {
+          "weight": 5,
+          "effects": [
+            { "kind": "counter", "flag": "carding_heat", "delta": 2 }
+          ],
+          "result": "Silent alarm. The 'security guard' by the door was waiting for exactly this.",
+          "goto": "carding.police_encounter"
+        }
+      ],
+      "hint": "Needs an encoded card"
+    },
+    {
+      "id": "act_fence_parts",
+      "title": "Fence skimmer parts",
+      "description": "Offload salvageable reader hardware to Marlo's people. Small money, small risk.",
+      "category": "crime",
+      "usesPerYear": 3,
+      "usesBudget": false,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "flag", "flag": "carding_lifestyle", "equals": true },
+          { "kind": "counter", "flag": "skimmer_parts", "op": "gte", "value": 1 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "outcomes": [
+        {
+          "weight": 80,
+          "effects": [
+            { "kind": "money", "delta": 120 },
+            { "kind": "counter", "flag": "skimmer_parts", "delta": -1 },
+            { "kind": "counter", "flag": "carding_heat", "delta": 1 }
+          ],
+          "result": "A hundred bucks and a firm handshake from a man who will not give you his name."
+        },
+        {
+          "weight": 20,
+          "effects": [
+            { "kind": "counter", "flag": "skimmer_parts", "delta": -1 },
+            { "kind": "stat", "stat": "happiness", "delta": -3 }
+          ],
+          "result": "The buyer lowballs you to $0 with a shrug. Lessons were learned."
+        }
+      ],
+      "hint": "Needs spare reader hardware (pump salvage)"
+    },
+    {
+      "id": "act_lay_low",
+      "title": "Lay low for a while",
+      "description": "Delete ShadyBay, stay home, let the heat fade. Boring is a survival strategy.",
+      "category": "crime",
+      "usesPerYear": 2,
+      "usesBudget": false,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          { "kind": "counter", "flag": "carding_heat", "op": "gte", "value": 1 },
+          { "kind": "not", "condition": { "kind": "flag", "flag": "in_prison", "equals": true } }
+        ]
+      },
+      "effects": [
+        { "kind": "counter", "flag": "carding_heat", "delta": -3 },
+        { "kind": "stat", "stat": "happiness", "delta": -1 }
+      ],
+      "result": "You watch six seasons of a baking show and learn to enjoy curtains being closed. The heat fades.",
+      "hint": "Only useful once things are heating up"
+    }
+  ]
+}
