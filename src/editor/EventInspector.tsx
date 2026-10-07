@@ -1,4 +1,4 @@
-import type { Condition, Effect, Outcome, SimEvent } from "../engine/types";
+import type { Condition, Effect, Outcome, Relation, SimEvent } from "../engine/types";
 import { STAT_KEYS } from "../engine/types";
 
 interface Props {
@@ -9,6 +9,11 @@ interface Props {
 }
 
 const OPS = ["gte", "lte", "gt", "lt", "eq", "neq"] as const;
+
+const RELATIONS: Relation[] = [
+  "mother", "father", "sibling", "grandparent", "friend",
+  "partner", "spouse", "child", "coworker", "ex",
+];
 
 /** Edit one SimEvent. Covers the common structured fields; a condition root
  *  that isn't `all`/a leaf is shown as raw JSON so nothing is lost. */
@@ -106,6 +111,67 @@ export default function EventInspector({ event, eventIds, onChange, onDelete }: 
         </>
       )}
 
+      <div className="section-label">Subject (NPC this event is about)</div>
+      <div className="field-row">
+        <div className="field">
+          <label>Relation</label>
+          <select
+            value={event.subject?.relation?.[0] ?? ""}
+            onChange={(e) =>
+              set(
+                "subject",
+                e.target.value
+                  ? { ...event.subject, relation: [e.target.value as Relation] }
+                  : undefined,
+              )
+            }
+          >
+            <option value="">(none)</option>
+            {RELATIONS.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
+        {event.subject && (
+          <>
+            <div className="field">
+              <label>min rel</label>
+              <input
+                type="number"
+                min={-100}
+                max={100}
+                value={event.subject.minRel ?? ""}
+                onChange={(e) =>
+                  set("subject", {
+                    ...event.subject!,
+                    minRel: e.target.value === "" ? undefined : Number(e.target.value),
+                  })
+                }
+              />
+            </div>
+            <div className="field">
+              <label>max rel</label>
+              <input
+                type="number"
+                min={-100}
+                max={100}
+                value={event.subject.maxRel ?? ""}
+                onChange={(e) =>
+                  set("subject", {
+                    ...event.subject!,
+                    maxRel: e.target.value === "" ? undefined : Number(e.target.value),
+                  })
+                }
+              />
+            </div>
+          </>
+        )}
+      </div>
+      <p style={{ color: "var(--muted)", fontSize: 11, marginTop: -4 }}>
+        Subject events pick a living person with that relation; {`{{subject.name}}`} etc.
+        interpolate their name. Requires a matching NPC to fire.
+      </p>
+
       <div className="section-label">Choices</div>
       {event.choices.map((ch, i) => (
         <ChoiceEditor
@@ -184,7 +250,7 @@ function ConditionRow({
   onChange: (c: Condition) => void;
   onRemove: () => void;
 }) {
-  const leafKinds = ["age", "stat", "money", "trait", "flag", "chose"] as const;
+  const leafKinds = ["age", "stat", "money", "trait", "flag", "chose", "person", "ailment"] as const;
   const kind = leafKinds.includes(cond.kind as never) ? cond.kind : "age";
   return (
     <div className="cond-row">
@@ -213,6 +279,8 @@ function defaultCondition(kind: string): Condition {
     case "trait": return { kind: "trait", trait: "lucky" };
     case "flag": return { kind: "flag", flag: "flag_name", equals: true };
     case "chose": return { kind: "chose", event: "event_id", choice: "choice_id" };
+    case "person": return { kind: "person", relation: ["friend"] };
+    case "ailment": return { kind: "ailment" };
     default: return { kind: "age", min: 0 };
   }
 }
@@ -296,6 +364,60 @@ function CondFields({ cond, eventIds, onChange }: { cond: Condition; eventIds: s
           <div className="field">
             <input type="text" value={cond.choice} onChange={(e) => onChange({ ...cond, choice: e.target.value })} placeholder="choice id" />
           </div>
+        </div>
+      );
+    case "person":
+      return (
+        <div className="field-row">
+          <div className="field">
+            <select
+              value={cond.relation?.[0] ?? ""}
+              onChange={(e) =>
+                onChange({
+                  ...cond,
+                  relation: e.target.value
+                    ? [e.target.value as Relation]
+                    : undefined,
+                })
+              }
+            >
+              <option value="">(any NPC)</option>
+              {RELATIONS.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <input
+              type="number" min={-100} max={100}
+              value={cond.minRel ?? ""}
+              onChange={(e) =>
+                onChange({ ...cond, minRel: e.target.value === "" ? undefined : Number(e.target.value) })
+              }
+              placeholder="min rel"
+            />
+          </div>
+          <div className="field">
+            <input
+              type="number" min={-100} max={100}
+              value={cond.maxRel ?? ""}
+              onChange={(e) =>
+                onChange({ ...cond, maxRel: e.target.value === "" ? undefined : Number(e.target.value) })
+              }
+              placeholder="max rel"
+            />
+          </div>
+        </div>
+      );
+    case "ailment":
+      return (
+        <div className="field">
+          <input
+            type="text"
+            value={cond.ailment ?? ""}
+            onChange={(e) => onChange({ ...cond, ailment: e.target.value || undefined })}
+            placeholder="disease def id (blank = any active)"
+          />
         </div>
       );
     default:
@@ -416,7 +538,10 @@ function GotoSelect({ value, eventIds, onChange, label }: { value: string | unde
 
 /* --------------------------------- effects -------------------------------- */
 
-const EFFECT_KINDS = ["stat", "money", "trait", "flag", "unflag", "die"] as const;
+const EFFECT_KINDS = [
+  "stat", "money", "trait", "flag", "unflag", "die",
+  "ailment", "cure", "rel", "relation", "person", "memory",
+] as const;
 
 function EffectsEditor({ effects, onChange }: { effects: Effect[]; onChange: (e: Effect[]) => void }) {
   return (
@@ -458,6 +583,12 @@ function defaultEffect(kind: string): Effect {
     case "flag": return { kind: "flag", flag: "flag_name", value: true };
     case "unflag": return { kind: "unflag", flag: "flag_name" };
     case "die": return { kind: "die", cause: "unknown causes" };
+    case "ailment": return { kind: "ailment", ailment: "common_cold" };
+    case "cure": return { kind: "cure" };
+    case "rel": return { kind: "rel", delta: 10 };
+    case "relation": return { kind: "relation", relation: "friend" };
+    case "person": return { kind: "person", role: "friend" };
+    case "memory": return { kind: "memory", text: "Something happened" };
     default: return { kind: "stat", stat: "happiness", delta: 0 };
   }
 }
@@ -522,6 +653,56 @@ function EffectFields({ ef, onChange }: { ef: Effect; onChange: (e: Effect) => v
       return (
         <div className="field">
           <input type="text" value={ef.cause} onChange={(e) => onChange({ ...ef, cause: e.target.value })} placeholder="cause of death" />
+        </div>
+      );
+    case "ailment":
+      return (
+        <div className="field">
+          <input type="text" value={ef.ailment} onChange={(e) => onChange({ ...ef, ailment: e.target.value })} placeholder="disease def id" />
+        </div>
+      );
+    case "cure":
+      return (
+        <div className="field">
+          <input
+            type="text"
+            value={ef.ailment ?? ""}
+            onChange={(e) => onChange({ ...ef, ailment: e.target.value || undefined })}
+            placeholder="disease def id (blank = cure all)"
+          />
+        </div>
+      );
+    case "rel":
+      return (
+        <div className="field">
+          <input type="number" value={ef.delta} onChange={(e) => onChange({ ...ef, delta: Number(e.target.value) })} placeholder="Δ subject rel" />
+        </div>
+      );
+    case "relation":
+      return (
+        <div className="field">
+          <select value={ef.relation} onChange={(e) => onChange({ ...ef, relation: e.target.value as Relation })}>
+            {RELATIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+      );
+    case "person":
+      return (
+        <div className="field-row">
+          <div className="field">
+            <select value={ef.role} onChange={(e) => onChange({ ...ef, role: e.target.value as Relation })}>
+              {RELATIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div className="field">
+            <input type="number" value={ef.rel ?? ""} onChange={(e) => onChange({ ...ef, rel: e.target.value === "" ? undefined : Number(e.target.value) })} placeholder="start rel" />
+          </div>
+        </div>
+      );
+    case "memory":
+      return (
+        <div className="field">
+          <input type="text" value={ef.text} onChange={(e) => onChange({ ...ef, text: e.target.value })} placeholder="memory text" />
         </div>
       );
   }

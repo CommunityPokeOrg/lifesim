@@ -1,0 +1,1266 @@
+{
+  "id": "health",
+  "name": "Health & Disease",
+  "events": [
+    {
+      "id": "flu_season",
+      "title": "Flu season",
+      "description": "Half the office is out with the flu. Your throat feels like sandpaper.",
+      "category": "health",
+      "weight": 5,
+      "cooldown": 3,
+      "repeatDecay": 0.8,
+      "conditions": {
+        "kind": "age",
+        "min": 3
+      },
+      "choices": [
+        {
+          "id": "doctor",
+          "text": "See a doctor now ($150)",
+          "outcomes": [
+            {
+              "weight": 65,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -150
+                },
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": 3
+                }
+              ],
+              "result": "Caught early. Antivirals and a lollipop."
+            },
+            {
+              "weight": 35,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -150
+                },
+                {
+                  "kind": "ailment",
+                  "ailment": "influenza"
+                }
+              ],
+              "result": "Too late \u2014 the doctor confirms it's influenza."
+            }
+          ]
+        },
+        {
+          "id": "tough_it",
+          "text": "Tough it out",
+          "outcomes": [
+            {
+              "weight": 70,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -2
+                }
+              ],
+              "result": "Sniffles for a week. You survived on soup."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                {
+                  "kind": "ailment",
+                  "ailment": "influenza"
+                }
+              ],
+              "result": "It blossoms into full influenza. Regret."
+            }
+          ]
+        },
+        {
+          "id": "oils",
+          "text": "Essential oils and vibes",
+          "outcomes": [
+            {
+              "weight": 80,
+              "effects": [
+                {
+                  "kind": "ailment",
+                  "ailment": "influenza"
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 1
+                }
+              ],
+              "result": "The lavender did nothing. You feel smug anyway."
+            },
+            {
+              "weight": 20,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 2
+                }
+              ],
+              "result": "Placebo is a powerful drug."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "mystery_symptoms",
+      "title": "Something feels off",
+      "description": "You've felt wrong for weeks \u2014 fatigue, odd aches, a cough that won't quit.",
+      "category": "health",
+      "weight": 4,
+      "cooldown": 3,
+      "repeatDecay": 0.8,
+      "conditions": {
+        "kind": "age",
+        "min": 12
+      },
+      "choices": [
+        {
+          "id": "doctor",
+          "text": "Get it checked ($500)",
+          "outcomes": [
+            {
+              "weight": 55,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -500
+                },
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": 5
+                }
+              ],
+              "result": "Nothing serious \u2014 a vitamin deficiency. Fixed."
+            },
+            {
+              "weight": 25,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -500
+                },
+                {
+                  "kind": "ailment",
+                  "ailment": "hypertension"
+                }
+              ],
+              "result": "It's hypertension. Good thing you came in."
+            },
+            {
+              "weight": 20,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -500
+                },
+                {
+                  "kind": "ailment",
+                  "ailment": "mono"
+                }
+              ],
+              "result": "Mono. The doctor prescribes aggressive napping."
+            }
+          ]
+        },
+        {
+          "id": "webmd",
+          "text": "Diagnose yourself online",
+          "outcomes": [
+            {
+              "weight": 40,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -5
+                },
+                {
+                  "kind": "ailment",
+                  "ailment": "anxiety"
+                }
+              ],
+              "result": "Three hours later you have 14 terminal diagnoses. You have anxiety now."
+            },
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -2
+                }
+              ],
+              "result": "You decide it's 'probably fine'. It is not clearly not-fine."
+            }
+          ]
+        },
+        {
+          "id": "ignore",
+          "text": "Ignore it",
+          "outcomes": [
+            {
+              "weight": 55,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -3
+                }
+              ],
+              "result": "It passes. Probably nothing. Probably."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                {
+                  "kind": "ailment",
+                  "ailment": "insomnia"
+                }
+              ],
+              "result": "The stress settles into insomnia."
+            },
+            {
+              "weight": 15,
+              "effects": [
+                {
+                  "kind": "ailment",
+                  "ailment": "hypertension"
+                }
+              ],
+              "result": "It quietly becomes hypertension."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 260,
+        "y": 0
+      }
+    },
+    {
+      "id": "gym_injury",
+      "title": "Leg day",
+      "description": "A weight you have no business lifting is staring at you from the rack.",
+      "category": "health",
+      "weight": 4,
+      "cooldown": 3,
+      "repeatDecay": 0.9,
+      "conditions": {
+        "kind": "age",
+        "min": 16
+      },
+      "choices": [
+        {
+          "id": "stretch",
+          "text": "Stretch and lift sensibly",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "health",
+              "delta": 2
+            }
+          ],
+          "result": "Boring, safe, effective. Like a sensible person."
+        },
+        {
+          "id": "push",
+          "text": "Push through anyway",
+          "outcomes": [
+            {
+              "weight": 55,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": 5
+                },
+                {
+                  "kind": "stat",
+                  "stat": "looks",
+                  "delta": 2
+                }
+              ],
+              "result": "New personal record. Somewhere, a mirror flexes back."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                {
+                  "kind": "ailment",
+                  "ailment": "sprained_ankle"
+                }
+              ],
+              "result": "Your ankle folds like a bad poker hand."
+            },
+            {
+              "weight": 15,
+              "effects": [
+                {
+                  "kind": "ailment",
+                  "ailment": "broken_arm"
+                }
+              ],
+              "result": "Snap. That's not the barbell breaking."
+            }
+          ]
+        },
+        {
+          "id": "film",
+          "text": "Film it for the internet",
+          "outcomes": [
+            {
+              "weight": 50,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 6
+                },
+                {
+                  "kind": "stat",
+                  "stat": "looks",
+                  "delta": 1
+                }
+              ],
+              "result": "300 likes. Fame is brief and shallow. You love it."
+            },
+            {
+              "weight": 50,
+              "effects": [
+                {
+                  "kind": "ailment",
+                  "ailment": "sprained_ankle"
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -5
+                }
+              ],
+              "result": "The fail video does numbers, at least."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 520,
+        "y": 0
+      }
+    },
+    {
+      "id": "mental_check",
+      "title": "White-knuckling it",
+      "description": "The gray fog has been winning lately. Even your hobbies feel like chores.",
+      "category": "health",
+      "weight": 4,
+      "cooldown": 4,
+      "repeatDecay": 0.8,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 13
+          },
+          {
+            "kind": "stat",
+            "stat": "happiness",
+            "op": "lt",
+            "value": 40
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "therapy",
+          "text": "Book a therapist ($600)",
+          "outcomes": [
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -600
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 10
+                },
+                {
+                  "kind": "cure",
+                  "ailment": "depression"
+                }
+              ],
+              "result": "It helps more than you expected. Lighter."
+            },
+            {
+              "weight": 40,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -600
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 4
+                }
+              ],
+              "result": "Baby steps. The fog thins a little."
+            }
+          ]
+        },
+        {
+          "id": "isolate",
+          "text": "Isolate and push through",
+          "outcomes": [
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "ailment",
+                  "ailment": "depression"
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -5
+                }
+              ],
+              "result": "The fog settles in and starts paying rent."
+            },
+            {
+              "weight": 40,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 3
+                }
+              ],
+              "result": "Somehow you white-knuckle your way out. This time."
+            }
+          ]
+        },
+        {
+          "id": "exercise",
+          "text": "Run it off",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "health",
+              "delta": 4
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 3
+            }
+          ],
+          "result": "Endorphins are nature's antidepressant, temporarily."
+        }
+      ],
+      "ui": {
+        "x": 780,
+        "y": 0
+      }
+    },
+    {
+      "id": "checkup",
+      "title": "Annual physical",
+      "description": "Your doctor wants bloodwork. The office smells like clipboard.",
+      "category": "health",
+      "weight": 4,
+      "cooldown": 5,
+      "repeatDecay": 1.0,
+      "conditions": {
+        "kind": "age",
+        "min": 30
+      },
+      "choices": [
+        {
+          "id": "full_panel",
+          "text": "Full panel ($300)",
+          "outcomes": [
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -300
+                },
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": 3
+                }
+              ],
+              "result": "All clear. The doctor seems almost disappointed."
+            },
+            {
+              "weight": 25,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -300
+                },
+                {
+                  "kind": "ailment",
+                  "ailment": "hypertension"
+                }
+              ],
+              "result": "Early-stage hypertension. Caught in time."
+            },
+            {
+              "weight": 15,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -300
+                },
+                {
+                  "kind": "ailment",
+                  "ailment": "type2_diabetes"
+                }
+              ],
+              "result": "Pre-diabetic. The pamphlet they give you is relentless."
+            }
+          ]
+        },
+        {
+          "id": "skip",
+          "text": "Skip it",
+          "outcomes": [
+            {
+              "weight": 75,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 2
+                }
+              ],
+              "result": "An afternoon reclaimed. Whatever."
+            },
+            {
+              "weight": 25,
+              "effects": [
+                {
+                  "kind": "ailment",
+                  "ailment": "hypertension"
+                }
+              ],
+              "result": "Whatever was brewing went un-caught."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 0,
+        "y": 120
+      }
+    },
+    {
+      "id": "appendicitis_scare",
+      "title": "A stabbing pain",
+      "description": "A knife-like pain in your right side appeared out of nowhere.",
+      "category": "health",
+      "weight": 1.5,
+      "cooldown": 20,
+      "repeatDecay": 0.5,
+      "conditions": {
+        "kind": "age",
+        "min": 8,
+        "max": 70
+      },
+      "choices": [
+        {
+          "id": "er",
+          "text": "Go to the ER ($3,000)",
+          "outcomes": [
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -3000
+                },
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": 2
+                }
+              ],
+              "result": "Gas. Expensive gas. The nurse is sympathetic anyway."
+            },
+            {
+              "weight": 40,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -3000
+                },
+                {
+                  "kind": "cure",
+                  "ailment": "appendicitis"
+                },
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -3
+                }
+              ],
+              "result": "Appendicitis. The timing was good \u2014 it's out."
+            }
+          ]
+        },
+        {
+          "id": "wait",
+          "text": "Sleep it off",
+          "outcomes": [
+            {
+              "weight": 70,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -2
+                }
+              ],
+              "result": "It passes. You got lucky."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                {
+                  "kind": "ailment",
+                  "ailment": "appendicitis"
+                }
+              ],
+              "result": "It does not pass. It escalates."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 260,
+        "y": 120
+      }
+    },
+    {
+      "id": "sick_day",
+      "title": "Sick day dilemma",
+      "description": "You wake up feeling like wet cardboard. Work starts in an hour.",
+      "category": "health",
+      "weight": 6,
+      "cooldown": 2,
+      "repeatDecay": 0.9,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "flag",
+            "flag": "employed",
+            "equals": true
+          },
+          {
+            "kind": "ailment"
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "call_in",
+          "text": "Call in sick",
+          "outcomes": [
+            {
+              "weight": 75,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": 2
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 2
+                }
+              ],
+              "result": "A day of soup and terrible TV. Healing."
+            },
+            {
+              "weight": 25,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -500
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -3
+                }
+              ],
+              "result": "Your boss 'notices a pattern'. Docked pay."
+            }
+          ]
+        },
+        {
+          "id": "power",
+          "text": "Power through",
+          "outcomes": [
+            {
+              "weight": 50,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -3
+                }
+              ],
+              "result": "You infect three coworkers and get thanked for your dedication."
+            },
+            {
+              "weight": 50,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -1
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 2
+                }
+              ],
+              "result": "You survive on coffee and spite."
+            }
+          ]
+        },
+        {
+          "id": "fake",
+          "text": "Fake it worse than it is",
+          "outcomes": [
+            {
+              "weight": 65,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": 2
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 4
+                }
+              ],
+              "result": "Your cough performance deserves an Emmy."
+            },
+            {
+              "weight": 35,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -4
+                },
+                {
+                  "kind": "flag",
+                  "flag": "suspect_employee",
+                  "value": true
+                }
+              ],
+              "result": "HR requests 'a quick chat'. Uh oh."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 520,
+        "y": 120
+      }
+    }
+  ],
+  "ailments": [
+    {
+      "id": "common_cold",
+      "name": "Common cold",
+      "kind": "physical",
+      "course": "acute",
+      "severity": 1,
+      "durationYears": [
+        1,
+        1
+      ],
+      "healthPerYear": -1,
+      "happinessPerYear": -1,
+      "treatable": true,
+      "onsetWeight": 0.015,
+      "conditions": {
+        "kind": "age",
+        "min": 1
+      },
+      "treatments": [
+        {
+          "id": "self_care",
+          "label": "Rest and fluids",
+          "provider": "self",
+          "cost": 0,
+          "cureChance": 0.5,
+          "relieveHealth": 2
+        }
+      ]
+    },
+    {
+      "id": "influenza",
+      "name": "Influenza",
+      "kind": "physical",
+      "course": "acute",
+      "severity": 2,
+      "durationYears": [
+        1,
+        2
+      ],
+      "healthPerYear": -3,
+      "happinessPerYear": -2,
+      "treatable": true,
+      "onsetWeight": 0.012,
+      "conditions": {
+        "kind": "age",
+        "min": 1
+      },
+      "treatments": [
+        {
+          "id": "antivirals",
+          "label": "Doctor visit + antivirals",
+          "provider": "gp",
+          "cost": 120,
+          "cureChance": 0.7,
+          "relieveHealth": 3
+        }
+      ]
+    },
+    {
+      "id": "mono",
+      "name": "Mononucleosis",
+      "kind": "physical",
+      "course": "acute",
+      "severity": 2,
+      "durationYears": [
+        1,
+        3
+      ],
+      "healthPerYear": -4,
+      "happinessPerYear": -3,
+      "treatable": true,
+      "onsetWeight": 0.008,
+      "conditions": {
+        "kind": "age",
+        "min": 12,
+        "max": 35
+      },
+      "treatments": [
+        {
+          "id": "rest_course",
+          "label": "Doctor visit + prescribed rest",
+          "provider": "gp",
+          "cost": 200,
+          "cureChance": 0.55,
+          "relieveHealth": 3
+        }
+      ]
+    },
+    {
+      "id": "food_poisoning",
+      "name": "Food poisoning",
+      "kind": "physical",
+      "course": "acute",
+      "severity": 1,
+      "durationYears": [
+        1,
+        1
+      ],
+      "healthPerYear": -3,
+      "happinessPerYear": -2,
+      "treatable": true,
+      "onsetWeight": 0.012,
+      "conditions": {
+        "kind": "age",
+        "min": 1
+      },
+      "treatments": [
+        {
+          "id": "self_care",
+          "label": "Electrolytes and bed",
+          "provider": "self",
+          "cost": 0,
+          "cureChance": 0.8,
+          "relieveHealth": 3
+        }
+      ]
+    },
+    {
+      "id": "sprained_ankle",
+      "name": "Sprained ankle",
+      "kind": "injury",
+      "course": "acute",
+      "severity": 1,
+      "durationYears": [
+        1,
+        1
+      ],
+      "healthPerYear": -1,
+      "treatable": true,
+      "onsetWeight": 0.006,
+      "conditions": {
+        "kind": "age",
+        "min": 5
+      },
+      "treatments": [
+        {
+          "id": "brace",
+          "label": "Brace it",
+          "provider": "self",
+          "cost": 60,
+          "cureChance": 0.85,
+          "relieveHealth": 4
+        }
+      ]
+    },
+    {
+      "id": "broken_arm",
+      "name": "Broken arm",
+      "kind": "injury",
+      "course": "acute",
+      "severity": 2,
+      "durationYears": [
+        1,
+        2
+      ],
+      "healthPerYear": -2,
+      "happinessPerYear": -1,
+      "treatable": true,
+      "onsetWeight": 0.004,
+      "conditions": {
+        "kind": "age",
+        "min": 3
+      },
+      "treatments": [
+        {
+          "id": "surgery",
+          "label": "ER + cast",
+          "provider": "er",
+          "cost": 1500,
+          "cureChance": 0.95,
+          "relieveHealth": 5
+        }
+      ]
+    },
+    {
+      "id": "appendicitis",
+      "name": "Appendicitis",
+      "kind": "injury",
+      "course": "acute",
+      "severity": 3,
+      "durationYears": [
+        1,
+        1
+      ],
+      "healthPerYear": -5,
+      "happinessPerYear": -3,
+      "treatable": true,
+      "onsetWeight": 0.0025,
+      "conditions": {
+        "kind": "age",
+        "min": 8,
+        "max": 60
+      },
+      "treatments": [
+        {
+          "id": "appendectomy",
+          "label": "Emergency appendectomy",
+          "provider": "surgeon",
+          "cost": 6000,
+          "cureChance": 0.92,
+          "relieveHealth": 8
+        }
+      ]
+    },
+    {
+      "id": "migraines",
+      "name": "Chronic migraines",
+      "kind": "physical",
+      "course": "chronic",
+      "severity": 1,
+      "healthPerYear": -1,
+      "happinessPerYear": -1,
+      "treatable": true,
+      "onsetWeight": 0.006,
+      "conditions": {
+        "kind": "age",
+        "min": 15
+      },
+      "treatments": [
+        {
+          "id": "neurologist",
+          "label": "Neurologist consult",
+          "provider": "specialist",
+          "cost": 450,
+          "cureChance": 0.15,
+          "reduceDrain": 1,
+          "relieveHealth": 2
+        }
+      ]
+    },
+    {
+      "id": "insomnia",
+      "name": "Insomnia",
+      "kind": "mental",
+      "course": "chronic",
+      "severity": 1,
+      "healthPerYear": -1,
+      "happinessPerYear": -2,
+      "treatable": true,
+      "onsetWeight": 0.008,
+      "conditions": {
+        "kind": "age",
+        "min": 18
+      },
+      "treatments": [
+        {
+          "id": "sleep_clinic",
+          "label": "Sleep clinic",
+          "provider": "therapist",
+          "cost": 350,
+          "cureChance": 0.3,
+          "reduceDrain": 1
+        }
+      ]
+    },
+    {
+      "id": "depression",
+      "name": "Depression",
+      "kind": "mental",
+      "course": "chronic",
+      "severity": 2,
+      "healthPerYear": -1,
+      "happinessPerYear": -4,
+      "treatable": true,
+      "onsetWeight": 0.006,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 13
+          },
+          {
+            "kind": "stat",
+            "stat": "happiness",
+            "op": "lt",
+            "value": 45
+          }
+        ]
+      },
+      "treatments": [
+        {
+          "id": "therapy",
+          "label": "Weekly therapy",
+          "provider": "therapist",
+          "cost": 900,
+          "cureChance": 0.35,
+          "reduceDrain": 1,
+          "relieveHealth": 2
+        }
+      ]
+    },
+    {
+      "id": "anxiety",
+      "name": "Anxiety disorder",
+      "kind": "mental",
+      "course": "chronic",
+      "severity": 2,
+      "healthPerYear": -1,
+      "happinessPerYear": -3,
+      "treatable": true,
+      "onsetWeight": 0.007,
+      "conditions": {
+        "kind": "age",
+        "min": 13
+      },
+      "treatments": [
+        {
+          "id": "therapy",
+          "label": "Therapy + medication",
+          "provider": "therapist",
+          "cost": 800,
+          "cureChance": 0.4,
+          "reduceDrain": 1
+        }
+      ]
+    },
+    {
+      "id": "asthma",
+      "name": "Asthma",
+      "kind": "physical",
+      "course": "chronic",
+      "severity": 2,
+      "healthPerYear": -1,
+      "treatable": true,
+      "onsetWeight": 0.006,
+      "conditions": {
+        "kind": "age",
+        "min": 3,
+        "max": 25
+      },
+      "treatments": [
+        {
+          "id": "inhaler",
+          "label": "Inhaler prescription",
+          "provider": "gp",
+          "cost": 250,
+          "cureChance": 0.1,
+          "reduceDrain": 1,
+          "relieveHealth": 3
+        }
+      ]
+    },
+    {
+      "id": "hypertension",
+      "name": "Hypertension",
+      "kind": "physical",
+      "course": "chronic",
+      "severity": 2,
+      "healthPerYear": -1,
+      "treatable": true,
+      "onsetWeight": 0.008,
+      "conditions": {
+        "kind": "age",
+        "min": 35
+      },
+      "treatments": [
+        {
+          "id": "medication",
+          "label": "Blood pressure medication",
+          "provider": "gp",
+          "cost": 180,
+          "cureChance": 0.15,
+          "reduceDrain": 1,
+          "relieveHealth": 2
+        }
+      ]
+    },
+    {
+      "id": "type2_diabetes",
+      "name": "Type 2 diabetes",
+      "kind": "physical",
+      "course": "chronic",
+      "severity": 2,
+      "healthPerYear": -2,
+      "happinessPerYear": -1,
+      "treatable": true,
+      "onsetWeight": 0.005,
+      "conditions": {
+        "kind": "age",
+        "min": 30
+      },
+      "treatments": [
+        {
+          "id": "endocrinologist",
+          "label": "Endocrinologist + insulin plan",
+          "provider": "specialist",
+          "cost": 600,
+          "cureChance": 0.1,
+          "reduceDrain": 2,
+          "relieveHealth": 3
+        }
+      ]
+    },
+    {
+      "id": "cancer",
+      "name": "Cancer",
+      "blurb": "A serious diagnosis. Treatment is expensive but often effective.",
+      "kind": "physical",
+      "course": "progressive",
+      "severity": 3,
+      "healthPerYear": -3,
+      "happinessPerYear": -3,
+      "escalatePerYear": 1,
+      "lethalPerYear": 0.025,
+      "treatable": true,
+      "onsetWeight": 0.0035,
+      "conditions": {
+        "kind": "age",
+        "min": 45
+      },
+      "treatments": [
+        {
+          "id": "chemo",
+          "label": "Chemotherapy course",
+          "provider": "specialist",
+          "cost": 18000,
+          "cureChance": 0.35,
+          "relieveHealth": 6,
+          "reduceDrain": 2
+        },
+        {
+          "id": "surgery",
+          "label": "Tumor surgery",
+          "provider": "surgeon",
+          "cost": 25000,
+          "cureChance": 0.5,
+          "relieveHealth": 8,
+          "reduceDrain": 2
+        }
+      ]
+    },
+    {
+      "id": "dementia",
+      "name": "Dementia",
+      "blurb": "Progressive and incurable, but manageable.",
+      "kind": "physical",
+      "course": "progressive",
+      "severity": 3,
+      "healthPerYear": -2,
+      "happinessPerYear": -2,
+      "escalatePerYear": 1,
+      "lethalPerYear": 0.03,
+      "treatable": false,
+      "onsetWeight": 0.006,
+      "conditions": {
+        "kind": "age",
+        "min": 68
+      },
+      "treatments": [
+        {
+          "id": "memory_care",
+          "label": "Memory care program",
+          "provider": "specialist",
+          "cost": 2500,
+          "cureChance": 0.0,
+          "reduceDrain": 1,
+          "relieveHealth": 1
+        }
+      ]
+    }
+  ]
+}

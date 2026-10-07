@@ -1,0 +1,463 @@
+{
+  "id": "crime",
+  "name": "Crime",
+  "events": [
+    {
+      "id": "mugging_offer",
+      "title": "Easy money?",
+      "description": "Your acquaintance 'Sketchy Ray' needs a lookout for a robbery. Pays cash. Asks no questions. Red flag count: nine.",
+      "category": "crime",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 14,
+            "max": 50
+          },
+          {
+            "kind": "not",
+            "condition": {
+              "kind": "flag",
+              "flag": "in_prison",
+              "equals": true
+            }
+          }
+        ]
+      },
+      "weight": 4,
+      "cooldown": 5,
+      "repeatDecay": 0.7,
+      "weightModifiers": [
+        {
+          "when": {
+            "kind": "money",
+            "op": "lt",
+            "value": 500
+          },
+          "multiply": 1.5
+        },
+        {
+          "when": {
+            "kind": "trait",
+            "trait": "hot-headed"
+          },
+          "multiply": 1.5
+        },
+        {
+          "when": {
+            "kind": "chose",
+            "event": "mugging_offer",
+            "choice": "refuse"
+          },
+          "multiply": 0.3
+        },
+        {
+          "when": {
+            "kind": "chose",
+            "event": "mugging_offer",
+            "choice": "help"
+          },
+          "multiply": 1.3
+        }
+      ],
+      "choices": [
+        {
+          "id": "refuse",
+          "text": "Refuse",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 2
+            }
+          ],
+          "result": "You walked away. Clean hands, quiet conscience, zero cash."
+        },
+        {
+          "id": "help",
+          "text": "Go along with it",
+          "outcomes": [
+            {
+              "weight": 45,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "lucky"
+                  },
+                  "add": 25
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": 4000
+                }
+              ],
+              "result": "The robbery went smoothly. You pocketed $4,000 and a lifetime of looking over your shoulder."
+            },
+            {
+              "weight": 55,
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "in_prison",
+                  "value": true
+                },
+                {
+                  "kind": "flag",
+                  "flag": "sentence",
+                  "value": 3
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "employed"
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "salary"
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "in_school"
+                },
+                {
+                  "kind": "unflag",
+                  "flag": "in_college"
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -25
+                }
+              ],
+              "result": "Sirens. Handcuffs. A 3-year sentence.",
+              "goto": "prison_arrival"
+            }
+          ]
+        },
+        {
+          "id": "snitch",
+          "text": "Tip off the cops",
+          "outcomes": [
+            {
+              "weight": 70,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 4
+                },
+                {
+                  "kind": "flag",
+                  "flag": "snitch",
+                  "value": true
+                }
+              ],
+              "result": "The heist got busted before it started. Crime doesn't pay, but snitching feels okay."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -12
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -10
+                },
+                {
+                  "kind": "flag",
+                  "flag": "marked",
+                  "value": true
+                }
+              ],
+              "result": "Word travels fast in the shady-acquaintance community. A brick through your window travels faster."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 0,
+        "y": 660
+      }
+    },
+    {
+      "id": "prison_arrival",
+      "title": "Behind bars",
+      "description": "Your first night in prison. Your cellmate has a teardrop tattoo. You have anxiety.",
+      "category": "crime",
+      "weight": 0,
+      "choices": [
+        {
+          "id": "keep_head_down",
+          "text": "Keep your head down",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": -5
+            }
+          ],
+          "result": "You survived the first night unnoticed, a ghost in an orange jumpsuit."
+        },
+        {
+          "id": "stand_ground",
+          "text": "Stand your ground",
+          "outcomes": [
+            {
+              "weight": 40,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "athletic"
+                  },
+                  "add": 30
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 3
+                }
+              ],
+              "result": "You earned some respect on the block."
+            },
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -10
+                }
+              ],
+              "result": "It went badly. You spent a week in the infirmary reconsidering your brand."
+            }
+          ]
+        },
+        {
+          "id": "bluff",
+          "text": "Claim you're in for tax fraud",
+          "outcomes": [
+            {
+              "weight": 50,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 20
+                },
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "smarts",
+                    "op": "gte",
+                    "value": 65
+                  },
+                  "add": 10
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 3
+                },
+                {
+                  "kind": "flag",
+                  "flag": "white_collar_legend",
+                  "value": true
+                }
+              ],
+              "result": "White-collar crime earns nods of respect. Someone asks you to do their taxes."
+            },
+            {
+              "weight": 50,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -6
+                }
+              ],
+              "result": "'Tax fraud?' your cellmate snorts. 'Cute.' You sleep facing the wall now."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 260,
+        "y": 660
+      }
+    },
+    {
+      "id": "mugged",
+      "title": "Mugged!",
+      "description": "A stranger emerges from a dark alley and demands your wallet. Your cardio finally matters.",
+      "category": "crime",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 12
+          },
+          {
+            "kind": "money",
+            "op": "gt",
+            "value": 100
+          },
+          {
+            "kind": "not",
+            "condition": {
+              "kind": "flag",
+              "flag": "in_prison",
+              "equals": true
+            }
+          }
+        ]
+      },
+      "weight": 5,
+      "cooldown": 5,
+      "repeatDecay": 0.5,
+      "choices": [
+        {
+          "id": "comply",
+          "text": "Hand it over",
+          "effects": [
+            {
+              "kind": "money",
+              "delta": -500
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": -8
+            }
+          ],
+          "result": "You lost some cash but kept your teeth. A fair trade, honestly."
+        },
+        {
+          "id": "resist",
+          "text": "Fight them off",
+          "outcomes": [
+            {
+              "weight": 35,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "athletic"
+                  },
+                  "add": 40
+                },
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "health",
+                    "op": "gte",
+                    "value": 75
+                  },
+                  "add": 15
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 6
+                }
+              ],
+              "result": "They ran. You kept your wallet and your dignity."
+            },
+            {
+              "weight": 65,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -15
+                },
+                {
+                  "kind": "money",
+                  "delta": -800
+                }
+              ],
+              "result": "They won. You woke up in the hospital, poorer and bruised."
+            }
+          ]
+        },
+        {
+          "id": "counter_mug",
+          "text": "Mug them back",
+          "outcomes": [
+            {
+              "weight": 15,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "lucky"
+                  },
+                  "add": 20
+                },
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "athletic"
+                  },
+                  "add": 25
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": 200
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 8
+                },
+                {
+                  "kind": "flag",
+                  "flag": "mugged_the_mugger",
+                  "value": true
+                }
+              ],
+              "result": "You took HIS wallet. A legend is born. Unhinged, but a legend."
+            },
+            {
+              "weight": 85,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "health",
+                  "delta": -18
+                },
+                {
+                  "kind": "money",
+                  "delta": -600
+                }
+              ],
+              "result": "He had a buddy. You did not have a buddy. Hospital food is bland."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 520,
+        "y": 660
+      }
+    }
+  ]
+}

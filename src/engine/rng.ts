@@ -27,6 +27,7 @@ export function weightedPick(rng: Rng, weights: number[]): number {
   return weights.length - 1;
 }
 
+
 /**
  * Deterministic 32-bit string hash (xmur3). Stable across runs, machines and
  * JS engines — unlike `String.hashCode`-style helpers, whose quality varies.

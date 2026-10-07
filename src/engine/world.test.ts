@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { LifeSim } from "./engine";
-import { validatePack } from "./schema";
+import { eventPackSchema, validatePack, validatePackFile } from "./schema";
+import { effectivePack, resolveSectionSrcs, sectionKey } from "./packs";
 import { hashString, seededNoise } from "./rng";
 import { applyWorldLaws, lawIsDue } from "./world";
-import type { EventPack, WorldLaw } from "./types";
+import type { Effect, EventPack, PackFile, WorldLaw, WorldLawEffect } from "./types";
 
 /** A pack with one always-eligible event, plus any laws under test. */
 function worldPack(laws: WorldLaw[] = []): EventPack {
@@ -54,6 +55,12 @@ describe("world law schema", () => {
       ]),
     );
     expect(res.ok, res.ok ? "" : res.errors.join("\n")).toBe(true);
+    if (res.ok) {
+      expect(res.pack.laws?.[0].id).toBe("inflation");
+      const sim = new LifeSim([res.pack], { seed: 1 });
+      sim.ageUp();
+      expect(sim.character.money).toBe(-10);
+    }
   });
 
   it("rejects a law with no effects or drift", () => {
@@ -167,20 +174,37 @@ describe("drift", () => {
     applyWorldLaws(b);
     expect(a.character.stats.health).toBe(b.character.stats.health);
   });
+
+  it("gives repeated drift entries on one stat independent jitter", () => {
+    const sim = life([{ id: "spread", drift: [
+      { stat: "happiness", amount: 0, jitter: 10 },
+      { stat: "happiness", amount: 0, jitter: 10 },
+    ] }], 99);
+    sim.character.age = 1;
+    sim.character.stats.happiness = 50;
+    const deltas = [0, 1].map((index) =>
+      Math.round((seededNoise(99, "drift", "spread", "happiness", index, 1) * 2 - 1) * 10),
+    );
+    expect(deltas[0]).not.toBe(deltas[1]);
+    applyWorldLaws(sim);
+    expect(sim.character.stats.happiness).toBe(50 + deltas[0] + deltas[1]);
+  });
 });
 
 describe("stream isolation", () => {
   it("world laws do not advance the event RNG", () => {
-    const a = new LifeSim([worldPack()], { seed: 12345 });
+    const pack = worldPack();
+    pack.events.push({ ...pack.events[0], id: "another", weight: 500 });
+    const a = new LifeSim([pack], { seed: 12345 });
     const b = new LifeSim(
       [
-        worldPack([
+        { ...pack, laws: [
           {
             id: "noise",
             chance: 50,
             effects: [{ kind: "counter", flag: "world_ticks", delta: 1 }],
           },
-        ]),
+        ] },
       ],
       { seed: 12345 },
     );
@@ -189,8 +213,151 @@ describe("stream isolation", () => {
     // …so the same seed produces the exact same fired-event sequence, even
     // though `b` runs an extra chance-based law every year.
     expect(drive(a, 30)).toEqual(drive(b, 30));
+    expect(a.rng()).toBe(b.rng());
     expect(Number(b.character.flags.world_ticks ?? 0)).toBeGreaterThan(0);
     expect(Number(a.character.flags.world_ticks ?? 0)).toBe(0);
+  });
+});
+
+describe("law effect validation", () => {
+  const forbidden: Effect[] = [
+    { kind: "person", role: "friend" },
+    { kind: "ailment", ailment: "flu" },
+    { kind: "rel", delta: 5 },
+    { kind: "relation", relation: "partner" },
+    { kind: "memory", text: "A memory" },
+  ];
+
+  it.each(forbidden)("rejects $kind effects in flat and section laws", (effect) => {
+    const law = { id: "unsafe", effects: [effect] };
+    const flat = { ...worldPack(), laws: [law] };
+    expect(eventPackSchema.safeParse(flat).success).toBe(false);
+    const res = validatePack(flat);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.errors.join("\n")).toMatch(/RNG-free and subject-free/);
+    expect(validatePackFile({
+      ...worldPack(),
+      sections: [{ id: "world", name: "World", laws: [law] }],
+    }).ok).toBe(false);
+  });
+
+  it("supports every RNG-free, subject-free effect without advancing RNG", () => {
+    const effects: WorldLawEffect[] = [
+      { kind: "stat", stat: "smarts", delta: 1 },
+      { kind: "money", delta: 10 },
+      { kind: "trait", trait: "bookish", action: "add" },
+      { kind: "flag", flag: "world", value: true },
+      { kind: "unflag", flag: "old" },
+      { kind: "counter", flag: "ticks", delta: 1 },
+      { kind: "collect", flag: "savings" },
+      { kind: "loseitem", item: "car" },
+      { kind: "cure" },
+      { kind: "die", cause: "world law" },
+    ];
+    const parsed = validatePack(worldPack([{ id: "safe", effects }]));
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    const withLaw = new LifeSim([parsed.pack], { seed: 123 });
+    const withoutLaw = life([], 123);
+    applyWorldLaws(withLaw);
+    expect(withLaw.rng()).toBe(withoutLaw.rng());
+    expect(withLaw.character.alive).toBe(false);
+    expect(withLaw.character.flags.world).toBe(true);
+  });
+});
+
+describe("nested world laws", () => {
+  const law = (id: string): WorldLaw => ({
+    id,
+    effects: [{ kind: "counter", flag: id, delta: 1 }],
+  });
+  const file: PackFile = {
+    id: "world",
+    name: "World",
+    version: "1",
+    laws: [law("top")],
+    sections: [{ id: "era", name: "Era", laws: [law("scoped")] }],
+  };
+
+  it("loads law-only packs through both validation entry points", () => {
+    const flat = validatePack({ id: "world", name: "World", version: "1", laws: file.laws });
+    expect(flat.ok).toBe(true);
+    if (flat.ok) {
+      expect(flat.pack.events).toEqual([]);
+      expect(eventPackSchema.safeParse(flat.pack).success).toBe(true);
+    }
+    const res = validatePackFile(file);
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.loaded.pack.laws?.map((l) => l.id)).toEqual(["top", "scoped"]);
+      expect(res.loaded.sections[0].lawIds).toEqual(["scoped"]);
+    }
+  });
+
+  it("disabling a section prevents its laws from running, keeping top-level laws", () => {
+    const res = validatePackFile(file);
+    if (!res.ok) throw new Error(res.errors.join("\n"));
+    const on = new LifeSim([effectivePack(res.loaded, new Set())], { seed: 1 });
+    const off = new LifeSim([effectivePack(res.loaded, new Set([sectionKey("world", "era")]))], { seed: 1 });
+    on.ageUp();
+    off.ageUp();
+    expect(on.character.flags).toMatchObject({ top: 1, scoped: 1 });
+    expect(off.character.flags.top).toBe(1);
+    expect(off.character.flags.scoped).toBeUndefined();
+  });
+
+  it("resolves bundled section laws before validation", () => {
+    const manifest: PackFile = { ...file, sections: [{ id: "era", name: "Era", src: "era.json" }] };
+    const resolved = resolveSectionSrcs(manifest, () => ({ laws: [law("scoped")] }));
+    const res = validatePackFile(resolved);
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.loaded.pack.laws).toHaveLength(2);
+    expect(validatePackFile({
+      ...manifest, sections: [{ ...manifest.sections![0], laws: [law("inline")] }],
+    }).ok).toBe(false);
+  });
+
+  it("rejects duplicate law ids across sections and other content", () => {
+    for (const id of ["top", "scoped", "only", "action", "item", "job"]) {
+      const res = validatePackFile({
+        ...worldPack([law("top")]),
+        actions: [{ id: "action", title: "Action", result: "OK" }],
+        items: [{ id: "item", name: "Item", price: 1 }],
+        jobs: [{ id: "job", title: "Job", salary: 1 }],
+        sections: [
+          { id: "a", name: "A", laws: [law("scoped")] },
+          { id: "b", name: "B", laws: [law(id)] },
+        ],
+      });
+      expect(res.ok).toBe(false);
+      if (!res.ok) expect(res.errors.join("\n")).toContain(`duplicate id "${id}"`);
+    }
+  });
+
+  it("validates section laws for no-op and empty age windows", () => {
+    for (const bad of [{ id: "noop" }, { ...law("age"), maxAge: 0 }]) {
+      const res = validatePackFile({
+        ...file, sections: [{ id: "era", name: "Era", laws: [bad] }],
+      });
+      expect(res.ok).toBe(false);
+    }
+  });
+});
+
+describe("world law death", () => {
+  it("does not draw events or apply subsequent laws after a fatal law", () => {
+    const sim = life([
+      { id: "fatal", effects: [{ kind: "die", cause: "world" }] },
+      { id: "after", effects: [{ kind: "money", delta: 10 }] },
+    ], 1);
+    sim.ageUp();
+    expect(sim.character.alive).toBe(false);
+    expect(sim.pending).toBeNull();
+    expect(sim.character.money).toBe(0);
+    expect(sim.log.filter((entry) => entry.kind === "death")).toHaveLength(1);
+    applyWorldLaws(sim);
+    expect(sim.character.money).toBe(0);
+    expect(sim.log.filter((entry) => entry.kind === "death")).toHaveLength(1);
   });
 });
 

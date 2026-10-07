@@ -1,0 +1,39 @@
+{
+  "id": "core",
+  "name": "Core Life Events",
+  "version": "2.0.0",
+  "description": "Default life-sim content, organized into subsections. Disable any section to slim the pack.",
+  "sections": [
+    {
+      "id": "schooling",
+      "name": "Schooling",
+      "src": "schooling.json"
+    },
+    {
+      "id": "jobs",
+      "name": "Jobs",
+      "src": "jobs.json"
+    },
+    {
+      "id": "relationships",
+      "name": "Relationships",
+      "src": "relationships.json"
+    },
+    {
+      "id": "crime",
+      "name": "Crime",
+      "src": "crime.json"
+    },
+    {
+      "id": "health",
+      "name": "Health & Disease",
+      "src": "health.json"
+    },
+    {
+      "id": "luck_life",
+      "name": "Luck & Life",
+      "src": "luck_life.json"
+    }
+  ],
+  "names": {}
+}

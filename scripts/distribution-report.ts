@@ -3,11 +3,11 @@
  * Run: npx vite-node scripts/distribution-report.ts [lives]
  */
 import { simulate } from "../src/engine/simulate";
-import corePack from "../src/packs/core.json";
-import type { EventPack } from "../src/engine/types";
+import { bundledCorePack } from "../src/packs/index";
 
 const lives = Number(process.argv[2] ?? 3000);
-const report = simulate({ lives, packs: [corePack as EventPack], seedBase: 1 });
+const corePack = bundledCorePack();
+const report = simulate({ lives, packs: [corePack], seedBase: 1 });
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
@@ -40,7 +40,7 @@ for (const e of rows) {
   );
 }
 // events defined in the pack that never fired
-const packIds = (corePack as EventPack).events.map((e) => e.id);
+const packIds = corePack.events.map((e) => e.id);
 const silent = packIds.filter((id) => !report.events.has(id) || report.events.get(id)!.fires === 0);
 console.log();
 console.log("never fired:", silent.length ? silent.join(", ") : "(none)");

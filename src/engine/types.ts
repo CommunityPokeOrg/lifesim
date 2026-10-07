@@ -28,6 +28,10 @@ export interface Character {
   lastFired: Record<string, number>;
   /** eventId -> times fired, used by `repeatDecay`. */
   firedCount: Record<string, number>;
+  /** Persistent NPCs: family, friends, partners, coworkers, kids. */
+  people: Person[];
+  /** Active diseases/conditions. */
+  ailments: ActiveAilment[];
   alive: boolean;
   deathCause?: string;
 }
@@ -51,7 +55,16 @@ export type Condition =
   | { kind: "flag"; flag: string; equals?: unknown }
   | { kind: "chose"; event: string; choice: string }
   /** Numeric compare on a counter flag (counters are set by `counter` effects). */
-  | { kind: "counter"; flag: string; op?: CompareOp; value: number };
+  | { kind: "counter"; flag: string; op?: CompareOp; value: number }
+  /** At least one living person matches (relation/rel-meter filters). */
+  | {
+      kind: "person";
+      relation?: Relation[];
+      minRel?: number;
+      maxRel?: number;
+    }
+  /** Character has an active ailment (any, or a specific disease id). */
+  | { kind: "ailment"; ailment?: string };
 
 export interface WeightModifier {
   /** Only applies when this condition holds. */
@@ -73,7 +86,19 @@ export type Effect =
   | { kind: "collect"; flag: string }
   /** Remove an owned shop item (and its item_<id> flag). */
   | { kind: "loseitem"; item: string }
-  | { kind: "die"; cause: string };
+  | { kind: "die"; cause: string }
+  /** Contract a disease/condition defined by a pack. */
+  | { kind: "ailment"; ailment: string }
+  /** Cure an active ailment (id), or every ailment when omitted. */
+  | { kind: "cure"; ailment?: string }
+  /** Adjust the relationship meter of the event's subject person. */
+  | { kind: "rel"; delta: number }
+  /** Change the subject's relation (partner → spouse, → ex…). */
+  | { kind: "relation"; relation: Relation }
+  /** Introduce a persistent NPC (friend, coworker, child, …). */
+  | { kind: "person"; role: Relation; name?: string; rel?: number }
+  /** Append a memory to the subject person (and the life log). */
+  | { kind: "memory"; text: string };
 
 export interface Outcome {
   /** Base relative probability of this outcome branch. */
@@ -124,6 +149,11 @@ export interface SimEvent {
   repeatDecay?: number;
   /** Choices offered to the player. Must be non-empty. */
   choices: Choice[];
+  /** If set, the event is about a specific NPC picked from the roster at
+   *  draw time. `{{subject.name}}` (and .age / .relation) tokens in the
+   *  title, description, choice text and results are interpolated, and
+   *  `rel`/`memory` effects apply to that person. */
+  subject?: SubjectSelector;
   /** Editor layout metadata — ignored by the engine. */
   ui?: { x: number; y: number };
 }
@@ -140,9 +170,12 @@ export interface EventPack {
   items?: ShopItem[];
   /** Optional jobs the character can apply for. */
   jobs?: Job[];
-  /** Optional declarative world laws: passive yearly rules (inflation,
-   *  decay, era drift…) applied every year without an event. */
+  /** Passive yearly world rules. */
   laws?: WorldLaw[];
+  /** Disease/condition definitions the events may inflict. */
+  ailments?: DiseaseDef[];
+  /** Optional name pools for generated NPCs. */
+  names?: { first?: string[]; last?: string[] };
 }
 
 /* ------------------------------- actions ------------------------------- */
@@ -215,6 +248,12 @@ export interface Job {
 
 /* ------------------------------- world laws ------------------------------- */
 
+/** Law effects must neither consume the event RNG nor require an NPC subject. */
+export type WorldLawEffect = Extract<Effect, {
+  kind: "stat" | "money" | "trait" | "flag" | "unflag" | "counter" |
+    "collect" | "loseitem" | "die" | "cure";
+}>;
+
 /**
  * A declarative, data-only yearly rule. Unlike an event, a law has no
  * choices: when its cadence and conditions line up it simply applies its
@@ -224,8 +263,8 @@ export interface Job {
  *
  * Randomness inside a law is stream-isolated: `chance` and `drift.jitter`
  * resolve from deterministic seeded noise keyed on (seed, law id, age),
- * never from the simulation RNG. Adding or tuning a law therefore cannot
- * perturb which events fire.
+ * never from the simulation RNG. Their state changes can still affect
+ * which events are eligible.
  */
 export interface WorldLaw {
   id: string;
@@ -242,8 +281,8 @@ export interface WorldLaw {
   everyYears?: number;
   /** Probability 0..100 the law fires on a due year. Default 100. */
   chance?: number;
-  /** Effects applied when the law fires (same DSL as events). */
-  effects?: Effect[];
+  /** RNG-free, subject-free effects applied when the law fires. */
+  effects?: WorldLawEffect[];
   /** Numeric per-stat drift applied when the law fires. */
   drift?: StatDrift[];
   /** Suppress the life-log line for this law. */
@@ -259,12 +298,172 @@ export interface StatDrift {
   jitter?: number;
 }
 
+/* ----------------------------- nested packs ------------------------------- */
+
+/**
+ * A pack may be split into named subsections. Subsections can be toggled on
+ * or off per pack and are how the bundled core pack is organized
+ * (relationships / schooling / jobs / health / crime / …). A section either
+ * inlines its events or, for bundled packs, references a sibling file via
+ * `src` that the loader resolves before validation.
+ */
+export interface PackSection {
+  id: string;
+  name: string;
+  /** Bundled manifests may point at a sibling JSON file instead. */
+  src?: string;
+  events?: SimEvent[];
+  ailments?: DiseaseDef[];
+  laws?: WorldLaw[];
+}
+
+/** Raw on-disk/imported shape: flat events, nested sections, or both. */
+export interface PackFile {
+  id: string;
+  name: string;
+  version: string;
+  description?: string;
+  events?: SimEvent[];
+  ailments?: DiseaseDef[];
+  actions?: GameAction[];
+  items?: ShopItem[];
+  jobs?: Job[];
+  /** Passive yearly world rules. */
+  laws?: WorldLaw[];
+  names?: { first?: string[]; last?: string[] };
+  sections?: PackSection[];
+}
+
+/** Section metadata kept alongside a flattened pack for the enable/disable UI. */
+export interface PackSectionInfo {
+  id: string;
+  name: string;
+  eventIds: string[];
+  ailmentIds: string[];
+  lawIds: string[];
+}
+
+/** A validated pack plus its section map (flat packs have no sections). */
+export interface LoadedPack {
+  pack: EventPack;
+  sections: PackSectionInfo[];
+}
+
+/* --------------------------------- people --------------------------------- */
+
+export type Relation =
+  | "mother"
+  | "father"
+  | "sibling"
+  | "grandparent"
+  | "friend"
+  | "partner"
+  | "spouse"
+  | "child"
+  | "coworker"
+  | "ex";
+
+/** A persistent NPC that lives across years: ages, drifts, can die or move away. */
+export interface Person {
+  id: string;
+  name: string;
+  age: number;
+  relation: Relation;
+  /** Relationship meter, -100..100. */
+  rel: number;
+  alive: boolean;
+  /** Why they left the roster, if they did. */
+  gone?: "died" | "moved";
+  traits: string[];
+  /** Player's age when the person entered their life. */
+  metAge: number;
+  /** Notable things that happened with this person. */
+  memories: string[];
+  /** action id -> age it was last used (once-per-year actions). */
+  lastActAge: Record<string, number>;
+}
+
+/** Which person an event talks about; picked from the roster at draw time. */
+export interface SubjectSelector {
+  relation?: Relation[];
+  minRel?: number;
+  maxRel?: number;
+}
+
+/* -------------------------------- ailments -------------------------------- */
+
+export type AilmentKind = "physical" | "mental" | "injury";
+export type AilmentCourse = "acute" | "chronic" | "progressive";
+
+export interface TreatmentDef {
+  id: string;
+  label: string;
+  /** Who performs it — drives the UI label (GP, therapist, surgeon, ER…). */
+  provider: "gp" | "therapist" | "specialist" | "surgeon" | "er" | "self";
+  cost: number;
+  /** 0..1 chance the treatment fully cures the ailment. */
+  cureChance: number;
+  /** Immediate health restored regardless of cure. */
+  relieveHealth?: number;
+  /** For chronic ailments: reduces the yearly drain instead of curing. */
+  reduceDrain?: number;
+}
+
+/** Pack-declared disease/condition. */
+export interface DiseaseDef {
+  id: string;
+  name: string;
+  blurb?: string;
+  kind: AilmentKind;
+  /** acute: recovers after durationYears; chronic: stays, treatable;
+   *  progressive: drain worsens each year. */
+  course: AilmentCourse;
+  severity: number;
+  /** [min, max] years an acute ailment lasts. */
+  durationYears?: [number, number];
+  /** Health delta applied every year while active (negative = drain). */
+  healthPerYear?: number;
+  /** Happiness delta applied every year while active. */
+  happinessPerYear?: number;
+  /** Progressive only: healthPerYear worsens by this much each year. */
+  escalatePerYear?: number;
+  treatable?: boolean;
+  treatments?: TreatmentDef[];
+  /** Per-year probability of dying while the ailment is active. Keep tiny
+   *  and age-gate the def's conditions — no childhood mortality spikes. */
+  lethalPerYear?: number;
+  /** Per-year probability of randomly contracting it, 0..1. */
+  onsetWeight?: number;
+  /** Contraction gate (age etc.). */
+  conditions?: Condition;
+}
+
+/** A disease the character currently has. */
+export interface ActiveAilment {
+  id: string;
+  defId: string;
+  name: string;
+  kind: AilmentKind;
+  course: AilmentCourse;
+  severity: number;
+  /** Remaining years for acute ailments. */
+  yearsLeft?: number;
+  /** Current yearly health drain (escalates for progressive). */
+  drain: number;
+  happy: number;
+  treatable: boolean;
+  /** Age at which it was contracted. */
+  sinceAge: number;
+}
+
 /* --------------------------------- runtime --------------------------------- */
 
 export interface PendingEvent {
   event: SimEvent;
   /** Choices after filtering by their conditions. */
   choices: Choice[];
+  /** The NPC this event is about, when the event declares a `subject`. */
+  subject?: Person;
 }
 
 export interface LogEntry {

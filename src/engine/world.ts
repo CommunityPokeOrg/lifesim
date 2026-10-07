@@ -10,7 +10,8 @@ import type { WorldLaw } from "./types";
  * temporal-slice transforms, reduced to this engine's turn-based model. The
  * key property is **stream isolation**: a law resolves its randomness from
  * `seededNoise(seed, …)` rather than `sim.rng()`, so adding, removing or
- * retuning laws never reshuffles the event draw (and never breaks a replay).
+ * retuning laws never advances the event RNG. State changes made by laws can
+ * still affect event eligibility and outcomes.
  */
 
 /** True when a law's age window and cadence line up with `age`. */
@@ -39,17 +40,18 @@ export function applyWorldLaws(sim: LifeSim): string[] {
   const c = sim.character;
 
   for (const law of sim.laws.values()) {
+    if (!c.alive) break;
     if (!lawIsDue(law, c.age)) continue;
     if (!evalCondition(law.conditions, c)) continue;
     if (!lawFires(law, sim)) continue;
 
     if (law.effects?.length) sim.applyEffects(law.effects);
 
-    for (const d of law.drift ?? []) {
+    for (const [index, d] of (law.drift ?? []).entries()) {
       const jitter = d.jitter ?? 0;
       const spread =
         jitter > 0
-          ? (seededNoise(sim.seed, "drift", law.id, d.stat, c.age) * 2 - 1) * jitter
+          ? (seededNoise(sim.seed, "drift", law.id, d.stat, index, c.age) * 2 - 1) * jitter
           : 0;
       const delta = Math.round(d.amount + spread);
       if (delta !== 0) sim.applyEffects([{ kind: "stat", stat: d.stat, delta }]);

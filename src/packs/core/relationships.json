@@ -1,0 +1,1339 @@
+{
+  "id": "relationships",
+  "name": "Relationships",
+  "events": [
+    {
+      "id": "meet_partner",
+      "title": "A chance encounter",
+      "description": "Someone charming laughs at your joke at a party. You briefly forget how elbows work.",
+      "category": "relationships",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 16,
+            "max": 60
+          },
+          {
+            "kind": "not",
+            "condition": {
+              "kind": "flag",
+              "flag": "partner",
+              "equals": true
+            }
+          },
+          {
+            "kind": "not",
+            "condition": {
+              "kind": "flag",
+              "flag": "in_prison",
+              "equals": true
+            }
+          }
+        ]
+      },
+      "weight": 14,
+      "cooldown": 3,
+      "repeatDecay": 0.7,
+      "weightModifiers": [
+        {
+          "when": {
+            "kind": "trait",
+            "trait": "charming"
+          },
+          "multiply": 1.8
+        },
+        {
+          "when": {
+            "kind": "stat",
+            "stat": "looks",
+            "op": "gte",
+            "value": 70
+          },
+          "multiply": 1.5
+        },
+        {
+          "when": {
+            "kind": "trait",
+            "trait": "shy"
+          },
+          "multiply": 0.4
+        }
+      ],
+      "choices": [
+        {
+          "id": "ask_out",
+          "text": "Ask them out",
+          "outcomes": [
+            {
+              "weight": 55,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "looks",
+                    "op": "gte",
+                    "value": 60
+                  },
+                  "add": 20
+                },
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 20
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "partner",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 15
+                },
+                {
+                  "kind": "person",
+                  "role": "partner",
+                  "rel": 30
+                }
+              ],
+              "result": "They said yes! You're officially together."
+            },
+            {
+              "weight": 45,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -8
+                }
+              ],
+              "result": "They turned you down gently. Ouch."
+            }
+          ]
+        },
+        {
+          "id": "let_it_go",
+          "text": "Just be friends",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 2
+            },
+            {
+              "kind": "person",
+              "role": "friend",
+              "rel": 20
+            }
+          ],
+          "result": "You made a good friend instead. Your romantic record remains spotless. Spotlessly empty."
+        },
+        {
+          "id": "rizz",
+          "text": "Deploy your worst pickup line",
+          "outcomes": [
+            {
+              "weight": 30,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "trait",
+                    "trait": "charming"
+                  },
+                  "add": 25
+                },
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "looks",
+                    "op": "gte",
+                    "value": 70
+                  },
+                  "add": 15
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "partner",
+                  "value": true
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 12
+                },
+                {
+                  "kind": "flag",
+                  "flag": "questionable_rizz",
+                  "value": true
+                },
+                {
+                  "kind": "person",
+                  "role": "partner",
+                  "rel": 30
+                }
+              ],
+              "result": "Against all laws of romance, it worked. They're into losers, apparently."
+            },
+            {
+              "weight": 70,
+              "effects": [
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -8
+                }
+              ],
+              "result": "They laughed. Not with you. A drink was involved. On your shirt."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 0,
+        "y": 440
+      }
+    },
+    {
+      "id": "marriage",
+      "title": "The big question",
+      "description": "Things are serious. Your partner keeps 'accidentally' browsing ring listings out loud.",
+      "category": "relationships",
+      "cooldown": 4,
+      "repeatDecay": 0.8,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "flag",
+            "flag": "partner",
+            "equals": true
+          },
+          {
+            "kind": "age",
+            "min": 20
+          },
+          {
+            "kind": "not",
+            "condition": {
+              "kind": "flag",
+              "flag": "married",
+              "equals": true
+            }
+          },
+          {
+            "kind": "person",
+            "relation": [
+              "partner"
+            ]
+          }
+        ]
+      },
+      "weight": 12,
+      "choices": [
+        {
+          "id": "propose",
+          "text": "Propose",
+          "outcomes": [
+            {
+              "weight": 70,
+              "weightModifiers": [
+                {
+                  "when": {
+                    "kind": "stat",
+                    "stat": "happiness",
+                    "op": "gte",
+                    "value": 60
+                  },
+                  "add": 20
+                }
+              ],
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "married",
+                  "value": true
+                },
+                {
+                  "kind": "money",
+                  "delta": -15000
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 15
+                },
+                {
+                  "kind": "relation",
+                  "relation": "spouse"
+                },
+                {
+                  "kind": "rel",
+                  "delta": 15
+                },
+                {
+                  "kind": "memory",
+                  "text": "Married {{name}}"
+                }
+              ],
+              "result": "They said yes! A lovely $15,000 wedding followed."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                {
+                  "kind": "unflag",
+                  "flag": "partner"
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -20
+                },
+                {
+                  "kind": "relation",
+                  "relation": "ex"
+                },
+                {
+                  "kind": "rel",
+                  "delta": -60
+                },
+                {
+                  "kind": "memory",
+                  "text": "Turned down your proposal"
+                }
+              ],
+              "result": "They said no \u2014 and ended the relationship."
+            }
+          ]
+        },
+        {
+          "id": "wait",
+          "text": "Wait a bit longer",
+          "effects": [],
+          "result": "You decided to wait. The relationship continued, ringless but intact."
+        },
+        {
+          "id": "elope",
+          "text": "Elope at 3am",
+          "outcomes": [
+            {
+              "weight": 80,
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "married",
+                  "value": true
+                },
+                {
+                  "kind": "money",
+                  "delta": -800
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 12
+                },
+                {
+                  "kind": "relation",
+                  "relation": "spouse"
+                },
+                {
+                  "kind": "memory",
+                  "text": "Eloped with {{name}}"
+                }
+              ],
+              "result": "A 24-hour chapel, an Elvis officiant, zero in-laws. Iconic."
+            },
+            {
+              "weight": 20,
+              "effects": [
+                {
+                  "kind": "flag",
+                  "flag": "married",
+                  "value": true
+                },
+                {
+                  "kind": "money",
+                  "delta": -800
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -4
+                },
+                {
+                  "kind": "flag",
+                  "flag": "family_grudge",
+                  "value": true
+                },
+                {
+                  "kind": "relation",
+                  "relation": "spouse"
+                },
+                {
+                  "kind": "memory",
+                  "text": "Eloped with {{name}}"
+                }
+              ],
+              "result": "Married! Your mother sent a card anyway. It is passive-aggressive."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 260,
+        "y": 440
+      },
+      "subject": {
+        "relation": [
+          "partner"
+        ]
+      }
+    },
+    {
+      "id": "breakup",
+      "title": "Rocky patch",
+      "description": "You and your partner now argue about the correct way to load a dishwasher. There isn't one.",
+      "category": "relationships",
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "flag",
+            "flag": "partner",
+            "equals": true
+          },
+          {
+            "kind": "stat",
+            "stat": "happiness",
+            "op": "lt",
+            "value": 45
+          },
+          {
+            "kind": "person",
+            "relation": [
+              "partner",
+              "spouse"
+            ]
+          }
+        ]
+      },
+      "weight": 12,
+      "cooldown": 3,
+      "repeatDecay": 0.7,
+      "choices": [
+        {
+          "id": "work_it_out",
+          "text": "Try couples counseling",
+          "effects": [
+            {
+              "kind": "money",
+              "delta": -2000
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 10
+            },
+            {
+              "kind": "rel",
+              "delta": 15
+            },
+            {
+              "kind": "memory",
+              "text": "Couples counseling"
+            }
+          ],
+          "result": "Counseling helped. You now fight about the dishwasher in healthier ways."
+        },
+        {
+          "id": "split",
+          "text": "Break up",
+          "effects": [
+            {
+              "kind": "unflag",
+              "flag": "partner"
+            },
+            {
+              "kind": "unflag",
+              "flag": "married"
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": -10
+            },
+            {
+              "kind": "relation",
+              "relation": "ex"
+            },
+            {
+              "kind": "rel",
+              "delta": -80
+            },
+            {
+              "kind": "memory",
+              "text": "You broke up"
+            }
+          ],
+          "result": "You went your separate ways. The playlists will take longer to divide."
+        },
+        {
+          "id": "fresh_start",
+          "text": "Ghost them and move cities",
+          "effects": [
+            {
+              "kind": "unflag",
+              "flag": "partner"
+            },
+            {
+              "kind": "unflag",
+              "flag": "married"
+            },
+            {
+              "kind": "money",
+              "delta": -3000
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 5
+            },
+            {
+              "kind": "flag",
+              "flag": "ghoster",
+              "value": true
+            },
+            {
+              "kind": "relation",
+              "relation": "ex"
+            },
+            {
+              "kind": "rel",
+              "delta": -80
+            },
+            {
+              "kind": "memory",
+              "text": "You broke up"
+            }
+          ],
+          "result": "New city, new you, same unresolved issues. But the skyline is nicer."
+        }
+      ],
+      "ui": {
+        "x": 520,
+        "y": 440
+      },
+      "subject": {
+        "relation": [
+          "partner",
+          "spouse"
+        ]
+      }
+    },
+    {
+      "id": "family_dinner",
+      "title": "Family dinner",
+      "description": "{{subject.name}} invites you to Sunday dinner. There will be questions.",
+      "category": "relationships",
+      "weight": 8,
+      "cooldown": 2,
+      "repeatDecay": 0.9,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 10
+          },
+          {
+            "kind": "person",
+            "relation": [
+              "mother",
+              "father",
+              "sibling",
+              "grandparent"
+            ]
+          }
+        ]
+      },
+      "subject": {
+        "relation": [
+          "mother",
+          "father",
+          "sibling",
+          "grandparent"
+        ],
+        "minRel": -50
+      },
+      "choices": [
+        {
+          "id": "go",
+          "text": "Go to dinner",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": 8
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 3
+            }
+          ],
+          "result": "Good food, probing questions. Overall a win."
+        },
+        {
+          "id": "bring_wine",
+          "text": "Go, and bring dessert ($40)",
+          "effects": [
+            {
+              "kind": "money",
+              "delta": -40
+            },
+            {
+              "kind": "rel",
+              "delta": 12
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 4
+            }
+          ],
+          "result": "Dessert diplomacy works every time."
+        },
+        {
+          "id": "skip",
+          "text": "Make an excuse",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": -8
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 2
+            }
+          ],
+          "result": "You stayed home. {{subject.name}} noticed."
+        }
+      ],
+      "ui": {
+        "x": 0,
+        "y": 520
+      }
+    },
+    {
+      "id": "mom_calls",
+      "title": "A call from {{subject.name}}",
+      "description": "{{subject.name}} calls 'just to check you're eating'. A guilt trip is implied.",
+      "category": "relationships",
+      "weight": 6,
+      "cooldown": 2,
+      "repeatDecay": 0.9,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 16
+          },
+          {
+            "kind": "person",
+            "relation": [
+              "mother",
+              "father"
+            ]
+          }
+        ]
+      },
+      "subject": {
+        "relation": [
+          "mother",
+          "father"
+        ]
+      },
+      "choices": [
+        {
+          "id": "chat",
+          "text": "Have a real chat",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": 6
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 3
+            }
+          ],
+          "result": "Forty minutes later you actually feel better."
+        },
+        {
+          "id": "curt",
+          "text": "\"I'm fine. Busy. Bye.\"",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": -4
+            }
+          ],
+          "result": "The call lasts nine seconds. A record."
+        },
+        {
+          "id": "borrow",
+          "text": "Ask for a loan",
+          "outcomes": [
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": 300
+                },
+                {
+                  "kind": "rel",
+                  "delta": -5
+                }
+              ],
+              "result": "They sent $300 and a lecture about budgeting."
+            },
+            {
+              "weight": 40,
+              "effects": [
+                {
+                  "kind": "rel",
+                  "delta": -12
+                }
+              ],
+              "result": "\"We raised you better than this.\" Click."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 260,
+        "y": 520
+      }
+    },
+    {
+      "id": "friend_drama",
+      "title": "Friend drama",
+      "description": "{{subject.name}} is feuding with your other friend and demands you pick a side.",
+      "category": "relationships",
+      "weight": 7,
+      "cooldown": 2,
+      "repeatDecay": 0.9,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 12
+          },
+          {
+            "kind": "person",
+            "relation": [
+              "friend"
+            ]
+          }
+        ]
+      },
+      "subject": {
+        "relation": [
+          "friend"
+        ]
+      },
+      "choices": [
+        {
+          "id": "side_with",
+          "text": "Side with {{subject.name}}",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": 10
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 2
+            }
+          ],
+          "result": "An alliance is forged. The other friend is furious."
+        },
+        {
+          "id": "neutral",
+          "text": "Stay stubbornly neutral",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": -8
+            }
+          ],
+          "result": "Switzerland is not a popular country right now."
+        },
+        {
+          "id": "mediate",
+          "text": "Try to mediate",
+          "outcomes": [
+            {
+              "weight": 50,
+              "effects": [
+                {
+                  "kind": "rel",
+                  "delta": 15
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 6
+                }
+              ],
+              "result": "Peace summit success. You're basically a diplomat."
+            },
+            {
+              "weight": 50,
+              "effects": [
+                {
+                  "kind": "rel",
+                  "delta": -15
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -4
+                }
+              ],
+              "result": "Now they both think you picked the other side."
+            }
+          ]
+        }
+      ],
+      "ui": {
+        "x": 520,
+        "y": 520
+      }
+    },
+    {
+      "id": "sibling_favor",
+      "title": "{{subject.name}} needs money",
+      "description": "{{subject.name}} needs $500 for 'a sure thing'. The quotation marks are audible.",
+      "category": "relationships",
+      "weight": 6,
+      "cooldown": 3,
+      "repeatDecay": 0.8,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 16
+          },
+          {
+            "kind": "person",
+            "relation": [
+              "sibling"
+            ]
+          }
+        ]
+      },
+      "subject": {
+        "relation": [
+          "sibling"
+        ]
+      },
+      "choices": [
+        {
+          "id": "lend",
+          "text": "Lend them $500",
+          "outcomes": [
+            {
+              "weight": 45,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -500
+                },
+                {
+                  "kind": "rel",
+                  "delta": 15
+                },
+                {
+                  "kind": "memory",
+                  "text": "Borrowed $500 from you"
+                }
+              ],
+              "result": "They promise to pay it back Friday. Sure."
+            },
+            {
+              "weight": 30,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": 300
+                },
+                {
+                  "kind": "rel",
+                  "delta": 20
+                },
+                {
+                  "kind": "memory",
+                  "text": "Paid you back with interest"
+                }
+              ],
+              "result": "It actually paid off? You get $800 back."
+            },
+            {
+              "weight": 25,
+              "effects": [
+                {
+                  "kind": "money",
+                  "delta": -500
+                },
+                {
+                  "kind": "rel",
+                  "delta": 5
+                }
+              ],
+              "result": "The 'sure thing' was a crypto hamster wheel."
+            }
+          ]
+        },
+        {
+          "id": "refuse",
+          "text": "Refuse politely",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": -10
+            }
+          ],
+          "result": "They're not speaking to you. Peace and quiet, honestly."
+        },
+        {
+          "id": "gift_it",
+          "text": "Give it as a gift",
+          "effects": [
+            {
+              "kind": "money",
+              "delta": -500
+            },
+            {
+              "kind": "rel",
+              "delta": 20
+            },
+            {
+              "kind": "memory",
+              "text": "You gave them $500, no strings"
+            }
+          ],
+          "result": "No strings attached. They're genuinely touched."
+        }
+      ],
+      "ui": {
+        "x": 0,
+        "y": 640
+      }
+    },
+    {
+      "id": "anniversary",
+      "title": "Anniversary",
+      "description": "It's your anniversary with {{subject.name}}. They are watching. Waiting.",
+      "category": "relationships",
+      "weight": 8,
+      "cooldown": 1,
+      "repeatDecay": 1.0,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "flag",
+            "flag": "married",
+            "equals": true
+          },
+          {
+            "kind": "person",
+            "relation": [
+              "spouse"
+            ]
+          }
+        ]
+      },
+      "subject": {
+        "relation": [
+          "spouse"
+        ]
+      },
+      "choices": [
+        {
+          "id": "fancy",
+          "text": "Fancy dinner ($300)",
+          "effects": [
+            {
+              "kind": "money",
+              "delta": -300
+            },
+            {
+              "kind": "rel",
+              "delta": 15
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 8
+            },
+            {
+              "kind": "memory",
+              "text": "Anniversary dinner"
+            }
+          ],
+          "result": "Candles, tiny portions, huge bill. Worth it."
+        },
+        {
+          "id": "homemade",
+          "text": "Cook at home",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": 8
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 4
+            }
+          ],
+          "result": "Slightly burnt, very sweet."
+        },
+        {
+          "id": "forgot",
+          "text": "Wait, it was today?",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": -20
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": -6
+            }
+          ],
+          "result": "{{subject.name}} is doing that thing with their eyes. Run."
+        }
+      ],
+      "ui": {
+        "x": 260,
+        "y": 640
+      }
+    },
+    {
+      "id": "partner_fight",
+      "title": "A stupid argument",
+      "description": "You and {{subject.name}} are now arguing about... honestly, nobody remembers.",
+      "category": "relationships",
+      "weight": 6,
+      "cooldown": 2,
+      "repeatDecay": 0.9,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "person",
+            "relation": [
+              "partner",
+              "spouse"
+            ]
+          }
+        ]
+      },
+      "subject": {
+        "relation": [
+          "partner",
+          "spouse"
+        ]
+      },
+      "choices": [
+        {
+          "id": "apologize",
+          "text": "Apologize first",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": 6
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": -2
+            }
+          ],
+          "result": "You swallow your pride. It tastes like calm."
+        },
+        {
+          "id": "stand_ground",
+          "text": "Stand your ground",
+          "outcomes": [
+            {
+              "weight": 40,
+              "effects": [
+                {
+                  "kind": "rel",
+                  "delta": -5
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": 4
+                }
+              ],
+              "result": "You were right, actually. They admit it. Rare."
+            },
+            {
+              "weight": 60,
+              "effects": [
+                {
+                  "kind": "rel",
+                  "delta": -18
+                },
+                {
+                  "kind": "stat",
+                  "stat": "happiness",
+                  "delta": -6
+                },
+                {
+                  "kind": "memory",
+                  "text": "The big fight"
+                }
+              ],
+              "result": "Cold silence for three days."
+            }
+          ]
+        },
+        {
+          "id": "therapy",
+          "text": "Suggest couples therapy ($800)",
+          "effects": [
+            {
+              "kind": "money",
+              "delta": -800
+            },
+            {
+              "kind": "rel",
+              "delta": 10
+            }
+          ],
+          "result": "A professional referee joins your team."
+        }
+      ],
+      "ui": {
+        "x": 520,
+        "y": 640
+      }
+    },
+    {
+      "id": "kid_birthday",
+      "title": "{{subject.name}}'s birthday",
+      "description": "Your kid {{subject.name}} is turning {{subject.age}}. Expectations are sky-high.",
+      "category": "relationships",
+      "weight": 8,
+      "cooldown": 1,
+      "repeatDecay": 1.0,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "person",
+            "relation": [
+              "child"
+            ]
+          }
+        ]
+      },
+      "subject": {
+        "relation": [
+          "child"
+        ]
+      },
+      "choices": [
+        {
+          "id": "party",
+          "text": "Throw a party ($400)",
+          "effects": [
+            {
+              "kind": "money",
+              "delta": -400
+            },
+            {
+              "kind": "rel",
+              "delta": 15
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 5
+            },
+            {
+              "kind": "memory",
+              "text": "Birthday party at {{age}}"
+            }
+          ],
+          "result": "Twenty screaming kids and a pi\u00f1ata. They love you."
+        },
+        {
+          "id": "gift",
+          "text": "Small gift ($80)",
+          "effects": [
+            {
+              "kind": "money",
+              "delta": -80
+            },
+            {
+              "kind": "rel",
+              "delta": 8
+            }
+          ],
+          "result": "The box was almost as fun as the toy."
+        },
+        {
+          "id": "forgot",
+          "text": "It slipped your mind",
+          "effects": [
+            {
+              "kind": "rel",
+              "delta": -20
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": -6
+            }
+          ],
+          "result": "A kid never forgets a forgotten birthday."
+        }
+      ],
+      "ui": {
+        "x": 780,
+        "y": 640
+      }
+    },
+    {
+      "id": "have_child",
+      "title": "Baby on the way",
+      "description": "You and {{subject.name}} are expecting. Panic and joy in equal measure.",
+      "category": "relationships",
+      "weight": 6,
+      "cooldown": 4,
+      "repeatDecay": 0.6,
+      "conditions": {
+        "kind": "all",
+        "conditions": [
+          {
+            "kind": "age",
+            "min": 20,
+            "max": 45
+          },
+          {
+            "kind": "person",
+            "relation": [
+              "partner",
+              "spouse"
+            ],
+            "minRel": 30
+          }
+        ]
+      },
+      "subject": {
+        "relation": [
+          "partner",
+          "spouse"
+        ],
+        "minRel": 30
+      },
+      "choices": [
+        {
+          "id": "welcome",
+          "text": "Welcome the tiny chaos agent",
+          "effects": [
+            {
+              "kind": "person",
+              "role": "child",
+              "rel": 60
+            },
+            {
+              "kind": "money",
+              "delta": -8000
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 8
+            },
+            {
+              "kind": "memory",
+              "text": "You had a child together"
+            }
+          ],
+          "result": "A tiny human joined the family. Sleep is now a rumor."
+        },
+        {
+          "id": "scared_but_ready",
+          "text": "Absolutely terrified. Do it anyway.",
+          "effects": [
+            {
+              "kind": "person",
+              "role": "child",
+              "rel": 50
+            },
+            {
+              "kind": "money",
+              "delta": -8000
+            },
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": 4
+            }
+          ],
+          "result": "Born under a cloud of anxiety and love. Mostly love."
+        },
+        {
+          "id": "adopt_out",
+          "text": "Give the child up for adoption",
+          "effects": [
+            {
+              "kind": "stat",
+              "stat": "happiness",
+              "delta": -10
+            },
+            {
+              "kind": "rel",
+              "delta": -10
+            },
+            {
+              "kind": "memory",
+              "text": "A child given up for adoption"
+            }
+          ],
+          "result": "A heavy choice. You hope they found a good home."
+        }
+      ],
+      "ui": {
+        "x": 1040,
+        "y": 520
+      }
+    }
+  ]
+}

@@ -2,9 +2,30 @@ import { evalCondition, effectiveWeight } from "./conditions";
 import { actionYearTick } from "./actions";
 import { applyWorldLaws } from "./world";
 import { makeRng, weightedPick, type Rng } from "./rng";
+import {
+  availableActions,
+  genFamily,
+  genPerson,
+  interpolate,
+  matchPeople,
+  mergedNamePools,
+  peopleTick,
+  runPeopleAction,
+  type NamePools,
+  type PeopleAction,
+} from "./people";
+import {
+  ailmentTick,
+  contractAilment,
+  cureAilment,
+  treatAilment,
+  treatmentsFor,
+  type TreatmentOffer,
+} from "./ailments";
 import type {
   Character,
   Choice,
+  DiseaseDef,
   Effect,
   EventPack,
   GameAction,
@@ -13,6 +34,7 @@ import type {
   Outcome,
   PendingEvent,
   ShopItem,
+  Person,
   SimEvent,
   StatKey,
   WorldLaw,
@@ -45,15 +67,17 @@ export interface SimOptions {
  */
 export class LifeSim {
   readonly rng: Rng;
-  /** Effective seed (explicit or generated), used for stream-isolated noise. */
+  /** Effective seed used for stream-isolated world noise. */
   readonly seed: number;
+  readonly laws = new Map<string, WorldLaw>();
   readonly events = new Map<string, SimEvent>();
   /** Player-initiated actions, shop items and jobs, merged from packs. */
   readonly actions = new Map<string, GameAction>();
   readonly items = new Map<string, ShopItem>();
   readonly jobs = new Map<string, Job>();
-  /** Declarative yearly world laws, merged from packs. */
-  readonly laws = new Map<string, WorldLaw>();
+  /** Disease definitions contributed by packs, keyed by def id. */
+  readonly ailments = new Map<string, DiseaseDef>();
+  readonly namePools: NamePools;
   character: Character;
   log: LogEntry[] = [];
   pending: PendingEvent | null = null;
@@ -62,15 +86,18 @@ export class LifeSim {
     this.seed = opts.seed ?? Math.floor(Math.random() * 2 ** 31);
     this.rng = makeRng(this.seed);
     for (const pack of packs) this.loadPack(pack);
+    this.namePools = mergedNamePools(packs);
     this.character = this.birth(opts.name ?? "Alex");
   }
 
   /** Merge a pack's content into the pool. Ids must be unique across packs. */
+  /** Merge a pack's events (and disease defs) into the pool. */
   loadPack(pack: EventPack) {
     for (const ev of pack.events) this.events.set(ev.id, ev);
     for (const a of pack.actions ?? []) this.actions.set(a.id, a);
     for (const i of pack.items ?? []) this.items.set(i.id, i);
     for (const j of pack.jobs ?? []) this.jobs.set(j.id, j);
+    for (const d of pack.ailments ?? []) this.ailments.set(d.id, d);
     for (const law of pack.laws ?? []) this.laws.set(law.id, law);
   }
 
@@ -96,6 +123,8 @@ export class LifeSim {
       firedOnce: [],
       lastFired: {},
       firedCount: {},
+      people: genFamily(r, this.namePools),
+      ailments: [],
       alive: true,
     };
   }
@@ -131,6 +160,24 @@ export class LifeSim {
     // Items, savings, investments, debt interest and per-year action resets.
     notes.push(...actionYearTick(this));
 
+    // Persistent NPCs age, drift, move away and pass on.
+    notes.push(...peopleTick(c, this.rng));
+    if (!c.alive) return notes;
+    // Diseases: drains, progression, expiry, lethality, new onsets.
+    const sick = ailmentTick(c, this.ailments, this.rng);
+    notes.push(...sick.notes);
+    if (sick.died) {
+      this.die(sick.died);
+      return notes;
+    }
+
+    // Mild recovery — a body carrying little or no condition load repairs
+    // a little each year; anything draining harder than a mild ache blocks it.
+    const drainSum = c.ailments.reduce((s, a) => s + a.drain, 0);
+    if (c.stats.health < 70 && drainSum > -2) {
+      c.stats.health = clamp(c.stats.health + 3);
+    }
+
     // Age-related health drift.
     if (c.age > 85) c.stats.health = clamp(c.stats.health - 6);
     else if (c.age > 70) c.stats.health = clamp(c.stats.health - 4);
@@ -139,8 +186,8 @@ export class LifeSim {
     if (c.traits.includes("sickly")) c.stats.health = clamp(c.stats.health - 1);
 
     // Data-driven world laws (inflation, decay, era drift…). These resolve
-    // any randomness from stream-isolated seeded noise, so tuning a law never
-    // reshuffles which events fire.
+    // randomness from stream-isolated seeded noise, leaving the event RNG
+    // untouched. Their state changes can still affect event eligibility.
     notes.push(...applyWorldLaws(this));
 
     return notes;
@@ -191,6 +238,8 @@ export class LifeSim {
         continue;
       }
       if (!evalCondition(ev.conditions, c)) continue;
+      // Events about a person need someone who matches the selector.
+      if (ev.subject && !matchPeople(c, ev.subject).length) continue;
       const choices = ev.choices.filter((ch) => evalCondition(ch.conditions, c));
       if (!choices.length) continue;
       let w = effectiveWeight(ev.weight ?? 10, ev.weightModifiers, c);
@@ -225,12 +274,7 @@ export class LifeSim {
     const forced = entries.filter((e) => e.event.forced);
     if (forced.length) {
       const ev = forced[Math.max(0, weightedPick(this.rng, forced.map((f) => f.weight)))].event;
-      this.pending = {
-        event: ev,
-        choices: ev.choices.filter((ch) => evalCondition(ch.conditions, c)),
-      };
-      this.log.push({ age: c.age, text: `${ev.title} — ${ev.description}`, kind: "event" });
-      return this.pending;
+      return this.queueEvent(ev);
     }
 
     // Quiet-year baseline: ~15% of the total draw weight, so most years
@@ -241,11 +285,37 @@ export class LifeSim {
     if (pick === weights.length || pick === -1) return null;
 
     const ev = eligible[pick];
-    this.pending = {
-      event: ev,
-      choices: ev.choices.filter((ch) => evalCondition(ch.conditions, c)),
+    return this.queueEvent(ev);
+  }
+
+  /**
+   * Queue an event as pending: pick its subject NPC (if it declares one) and
+   * produce interpolated copies of the title/description/choices so the UI
+   * and the log read naturally ("Your mother, Elena Rivera, …").
+   */
+  private queueEvent(ev: SimEvent): PendingEvent {
+    const c = this.character;
+    const candidates = ev.subject ? matchPeople(c, ev.subject) : [];
+    const subject = candidates.length
+      ? candidates[Math.floor(this.rng() * candidates.length)]
+      : undefined;
+    const shown: SimEvent = {
+      ...ev,
+      title: interpolate(ev.title, c, subject),
+      description: interpolate(ev.description, c, subject),
     };
-    this.log.push({ age: c.age, text: `${ev.title} — ${ev.description}`, kind: "event" });
+    this.pending = {
+      event: shown,
+      choices: ev.choices
+        .filter((ch) => evalCondition(ch.conditions, c))
+        .map((ch) => ({ ...ch, text: interpolate(ch.text, c, subject) })),
+      subject,
+    };
+    this.log.push({
+      age: c.age,
+      text: `${shown.title} — ${shown.description}`,
+      kind: "event",
+    });
     return this.pending;
   }
 
@@ -264,20 +334,20 @@ export class LifeSim {
       c.firedOnce.push(pending.event.id);
     }
     this.pending = null;
-    this.resolveChoice(choice, 0);
+    this.resolveChoice(choice, 0, pending.subject);
   }
 
-  resolveChoice(choice: Choice, depth: number) {
+  resolveChoice(choice: Choice, depth: number, subject?: Person) {
     const c = this.character;
     const outcome = this.pickOutcome(choice);
-    if (outcome?.effects) this.applyEffects(outcome.effects);
+    if (outcome?.effects) this.applyEffects(outcome.effects, subject);
     const text = outcome?.result;
-    if (text) this.log.push({ age: c.age, text, kind: "result" });
+    if (text) this.log.push({ age: c.age, text: interpolate(text, c, subject), kind: "result" });
     if (!c.alive) return;
     // An outcome-level goto wins; a choice-level goto is the default for all
     // outcomes (this is also what the graph editor's edges write).
     const goto = outcome?.goto ?? choice.goto;
-    if (goto && depth < MAX_GOTO_DEPTH) this.chain(goto, depth + 1);
+    if (goto && depth < MAX_GOTO_DEPTH) this.chain(goto, depth + 1, subject);
   }
 
   private pickOutcome(choice: Choice): Outcome | null {
@@ -292,7 +362,7 @@ export class LifeSim {
     return { weight: 1, effects: choice.effects, result: choice.result ?? "", goto: choice.goto };
   }
 
-  private chain(eventId: string, _depth: number) {
+  private chain(eventId: string, _depth: number, inheritSubject?: Person) {
     const ev = this.events.get(eventId);
     if (!ev) {
       this.log.push({ age: this.character.age, text: `(missing event "${eventId}")`, kind: "result" });
@@ -304,11 +374,27 @@ export class LifeSim {
     if (!evalCondition(ev.conditions, this.character)) return;
     const choices = ev.choices.filter((ch) => evalCondition(ch.conditions, this.character));
     if (!choices.length) return;
-    this.pending = { event: ev, choices };
-    this.log.push({ age: this.character.age, text: `${ev.title} — ${ev.description}`, kind: "event" });
+    const shown: SimEvent = {
+      ...ev,
+      title: interpolate(ev.title, this.character, inheritSubject),
+      description: interpolate(ev.description, this.character, inheritSubject),
+    };
+    this.pending = {
+      event: shown,
+      choices: choices.map((ch) => ({
+        ...ch,
+        text: interpolate(ch.text, this.character, inheritSubject),
+      })),
+      subject: inheritSubject,
+    };
+    this.log.push({
+      age: this.character.age,
+      text: `${shown.title} — ${shown.description}`,
+      kind: "event",
+    });
   }
 
-  applyEffects(effects: Effect[]) {
+  applyEffects(effects: Effect[], subject?: Person) {
     const c = this.character;
     for (const e of effects) {
       switch (e.kind) {
@@ -344,7 +430,88 @@ export class LifeSim {
         case "die":
           this.die(e.cause);
           break;
+        case "ailment": {
+          const def = this.ailments.get(e.ailment);
+          if (def && !c.ailments.some((a) => a.defId === def.id)) {
+            contractAilment(c, def, this.rng);
+          }
+          break;
+        }
+        case "cure":
+          cureAilment(c, e.ailment);
+          break;
+        case "rel":
+          if (subject?.alive) {
+            subject.rel = Math.max(-100, Math.min(100, subject.rel + e.delta));
+          }
+          break;
+        case "relation":
+          if (subject?.alive) subject.relation = e.relation;
+          break;
+        case "person": {
+          const p = genPerson(this.rng, this.namePools, e.role, c.age, {
+            name: e.name,
+            rel: e.rel,
+          });
+          c.people.push(p);
+          if (e.role === "partner") c.flags.partner = true;
+          if (e.role === "spouse") {
+            c.flags.partner = true;
+            c.flags.married = true;
+          }
+          break;
+        }
+        case "memory":
+          subject?.memories.push(e.text);
+          break;
       }
     }
+  }
+
+  /* --------------------------- people & health UI -------------------------- */
+
+  /** Living people still in the character's life, family first. */
+  peopleList(): Person[] {
+    const order = (p: Person) =>
+      ["mother", "father", "sibling", "grandparent", "child", "partner", "spouse", "friend", "coworker", "ex"].indexOf(p.relation);
+    return this.character.people
+      .filter((p) => p.alive && !p.gone)
+      .sort((a, b) => order(a) - order(b) || b.rel - a.rel);
+  }
+
+  /** Actions the player can take on a person right now. */
+  peopleActions(personId: string): PeopleAction[] {
+    const p = this.character.people.find((x) => x.id === personId);
+    return p ? availableActions(this.character, p) : [];
+  }
+
+  /** Run a People-menu action; logs and returns the result line. */
+  interact(personId: string, actionId: string): string {
+    const c = this.character;
+    const p = c.people.find((x) => x.id === personId);
+    if (!p) return "(no such person)";
+    const text = runPeopleAction(c, p, actionId, this.rng);
+    this.log.push({ age: c.age, text, kind: "result" });
+    return text;
+  }
+
+  /** Treatments offered for one of the character's active ailments. */
+  treatments(ailmentId: string): TreatmentOffer[] {
+    const a = this.character.ailments.find((x) => x.id === ailmentId);
+    if (!a) return [];
+    return treatmentsFor(this.character, this.ailments.get(a.defId), a);
+  }
+
+  /** Pay for and attempt a treatment; logs and returns the result line. */
+  treat(ailmentId: string, treatmentId: string): string {
+    const text = treatAilment(
+      this.character,
+      ailmentId,
+      treatmentId,
+      this.ailments,
+      this.rng,
+    );
+    this.log.push({ age: this.character.age, text, kind: "result" });
+    return text;
   }
 }
