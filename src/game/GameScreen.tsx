@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LifeSim } from "../engine/engine";
 import { validatePackFile } from "../engine/schema";
 import { sectionKey } from "../engine/packs";
@@ -33,6 +33,8 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
   const [importError, setImportError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
+  const eventRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery("(max-width: 860px)");
   // Rebuild the sim only when a new life starts or the pack list changes.
   const packsRef = useRef(packs);
   packsRef.current = packs;
@@ -40,6 +42,7 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
   const rerender = () => {
     onSessionChange();
     requestAnimationFrame(() => {
+      eventRef.current?.scrollIntoView({ block: "nearest" });
       logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
     });
   };
@@ -72,8 +75,15 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
 
   return (
     <div className="game">
-      <div className="panel">
-        <h3>Character</h3>
+      <details className="panel fold" open={!isMobile || !sim || !c?.alive}>
+        <summary onClick={(e) => !isMobile && e.preventDefault()}>
+          Character
+          {c && (
+            <span className="fold-mini">
+              {c.name} · {c.age} · ${c.money.toLocaleString()}
+            </span>
+          )}
+        </summary>
         {c ? (
           <>
             <div className="char-name">{c.name}</div>
@@ -143,7 +153,7 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
         </div>
         {importError && <div className="err">{importError}</div>}
         <SavePanel sim={sim} onRestore={onReplaceSession} message={saveMessage} onMessage={onSaveMessage} />
-      </div>
+      </details>
 
       <div className="center-col">
         <button
@@ -161,7 +171,7 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
           </div>
         )}
         {pending && (
-          <div className="event-card">
+          <div className="event-card" ref={eventRef}>
             <div className="event-cat">
               {pending.event.category ?? "life"}
               {pending.subject && (
@@ -181,7 +191,7 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
             ))}
           </div>
         )}
-        {sim && <ActionsPanel sim={sim} onAct={rerender} />}
+        {sim && <ActionsPanel sim={sim} onAct={rerender} mobile={isMobile} />}
         <div className="panel" style={{ flex: 1 }}>
           <h3>Life log</h3>
           <div className="lifelog" ref={logRef}>
@@ -195,7 +205,11 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
         </div>
       </div>
 
-      <div className="panel">
+      <details className="panel fold" open={!isMobile}>
+        <summary onClick={(e) => !isMobile && e.preventDefault()}>
+          World & packs
+          <span className="fold-mini">{sim ? `${sim.world.year} · ${sim.household.enabled ? sim.world.economy.phase : "Classic"}` : `${bundledPacks.length} packs`}</span>
+        </summary>
         {sim && <HouseholdPanel sim={sim} onAct={rerender} />}
         {sim && <details className="current-packs"><summary>This life's rules</summary>
           {sim.packSources.map((p, i) => <div key={`${p.id}:${i}`} className="household-note">{p.name} · v{p.version}</div>)}
@@ -251,9 +265,21 @@ export default function GameScreen({ sim, onReplaceSession, onSessionChange, sav
             </div>
           ))}
         <PackSummary packs={packs} />
-      </div>
+      </details>
     </div>
   );
+}
+
+/** Track a CSS media query so markup can adapt (e.g. panels collapse on mobile). */
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const onChange = () => setMatches(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [query]);
+  return matches;
 }
 
 function PackSummary({ packs }: { packs: EventPack[] }) {
